@@ -15,7 +15,6 @@ import {
 	PerspectiveCamera,
 	PlaneGeometry,
 	PointLight,
-	RectAreaLight,
 	Scene,
 	SphereGeometry,
 	SpotLight,
@@ -24,7 +23,7 @@ import {
 } from 'three';
 import type { ColorRepresentation } from 'three';
 
-import { gui } from '../../../../../utils/common/gui';
+import { gui } from '../../../../../../../utils/common/gui';
 
 const getBox = (
 	x: number,
@@ -184,7 +183,7 @@ const init = () => {
 
 	const sphere1 = getSphere(0.05, 20, 20, 0xffffff);
 	const planeLight = getPointLight(0xffffff, 1);
-	planeLight.visible = false;
+	// planeLight.visible = false;
 	planeLight.position.y = 2;
 	planeLight.add(sphere1);
 
@@ -206,7 +205,7 @@ const init = () => {
 
 	const sphere4 = getSphere(0.05, 20, 20, 0xffffff);
 	sphere4.visible = false;
-	const ambientLight = getAmbientLight(0x073959, 0.5);
+	const ambientLight = getAmbientLight(0xb2b1a5, 0.5);
 	ambientLight.visible = false;
 	ambientLight.position.y = 2;
 	ambientLight.position.x =

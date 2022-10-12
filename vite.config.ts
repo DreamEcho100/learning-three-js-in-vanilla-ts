@@ -2,31 +2,58 @@ import { defineConfig, loadEnv, UserConfig, UserConfigExport } from 'vite';
 
 import glsl from 'vite-plugin-glsl';
 
-import { resolve } from 'path';
+import glob from 'glob';
 
-export default ({ mode }: UserConfig): UserConfigExport => {
+import { resolve as pathResolve } from 'path';
+
+// https://www.npmjs.com/package/glob
+const getHtmlFiles = function (src, callback) {
+	glob(src + '/**/*.html', callback);
+};
+
+export default async ({ mode }: UserConfig): Promise<UserConfigExport> => {
 	if (mode) process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
 
-	return defineConfig({
-		build: {
-			rollupOptions: {
-				input: {
-					main: resolve(__dirname, 'index.html'),
-					nested: resolve(
-						__dirname,
-						'src/pages/courses/three JS Fundamentals Course - Learn Three.js from scratch/index.html'
-					)
+	return await new Promise((resolve, reject) => {
+		const input: Record<string, string> = {
+			main: pathResolve(__dirname, 'index.html')
+		};
+
+		glob('courses/**/*.html', function (err, res) {
+			if (err) {
+				console.error('Error', err);
+				reject(null);
+			} else {
+				if (Array.isArray(res)) {
+					res.forEach((item) => {
+						let fullPath: string;
+						let key: string;
+						if (typeof item === 'string') {
+							fullPath = pathResolve(__dirname, item);
+							key = fullPath.replace(/\\|\//g, '');
+							input[key] = fullPath;
+						}
+					});
 				}
+				resolve({ input });
 			}
-		},
-		resolve: {
-			alias: [
-				{ find: '@', replacement: resolve(__dirname) },
-				{ find: '@src', replacement: resolve(__dirname, 'src') },
-				{ find: '@styles', replacement: resolve(__dirname, 'styles') },
-				{ find: '@utils', replacement: resolve(__dirname, 'utils') }
-			]
-		},
-		plugins: [glsl()]
+		});
+	}).then((result) => {
+		return defineConfig({
+			build: {
+				rollupOptions: {
+					input: (result as any).input
+				}
+			},
+			resolve: {
+				alias: [
+					{ find: '@', replacement: pathResolve(__dirname) },
+					{ find: '@src', replacement: pathResolve(__dirname, 'src') },
+					{ find: '@styles', replacement: pathResolve(__dirname, 'styles') },
+					{ find: '@utils', replacement: pathResolve(__dirname, 'utils') }
+				]
+			},
+			plugins: [glsl()]
+		});
 	});
 };
