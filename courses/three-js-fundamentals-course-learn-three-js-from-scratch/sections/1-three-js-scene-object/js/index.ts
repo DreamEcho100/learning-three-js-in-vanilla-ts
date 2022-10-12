@@ -73,7 +73,7 @@ const init = () => {
 	// The director
 
 	// Populating the Scene in three js
-	const mesh = getBox(1, 1, 1, 0xff0000);
+	const mesh = getBox(1, 1, 1, 0x915f04);
 	mesh.position.y = mesh.geometry.parameters.height * 0.5;
 
 	// Creating more geometry objects in three js
