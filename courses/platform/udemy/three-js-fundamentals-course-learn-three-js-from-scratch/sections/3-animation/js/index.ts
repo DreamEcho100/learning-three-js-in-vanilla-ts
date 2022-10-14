@@ -20,12 +20,26 @@ import {
 	Scene,
 	SphereGeometry,
 	SpotLight,
-	Vector3,
 	WebGL1Renderer
 } from 'three';
 import type { ColorRepresentation } from 'three';
 
 import { gui } from '../../../../../../../utils/common/gui';
+
+enum EAnimationsTypeBoxGrid {
+	SIN = 'SIN',
+	COS = 'COS',
+	RANDOM = 'RANDOM'
+}
+
+const animationsType = {
+	boxGrid: EAnimationsTypeBoxGrid.RANDOM
+};
+
+let zIncrementSign = -1;
+const num = 0.1;
+
+const noise = new Noise(Math.random());
 
 const getBox = (
 	x: number,
@@ -131,17 +145,6 @@ const getBoxGrid = (amount: number, gapMultiplier: number) => {
 	return group;
 };
 
-enum EAnimationsTypeBoxGrid {
-	SIN = 'SIN',
-	COS = 'COS',
-	RANDOM = 'RANDOM'
-}
-
-const animationsType = {
-	boxGrid: EAnimationsTypeBoxGrid.RANDOM
-};
-
-const noise = new Noise(Math.random());
 const update = (props: {
 	render: WebGL1Renderer;
 	scene: Scene;
@@ -160,7 +163,13 @@ const update = (props: {
 	const boxGrid = props.scene.getObjectByName('boxGrid') as Group;
 	const cameraZPosGroup = props.scene.getObjectByName('cameraZPos') as Group;
 
-	cameraZPosGroup.position.z -= 0.1;
+	if (
+		(zIncrementSign === -1 && cameraZPosGroup.position.z - num < -50) ||
+		(zIncrementSign === 1 && cameraZPosGroup.position.z + num > 50)
+	)
+		zIncrementSign *= -1;
+
+	cameraZPosGroup.position.z += num * zIncrementSign;
 
 	if (animationsType.boxGrid === EAnimationsTypeBoxGrid.SIN)
 		boxGrid.children.forEach((child, index) => {
@@ -205,7 +214,7 @@ const init = () => {
 		1,
 		1000
 	);
-	// camera.position.set(1, 2, 5);
+	camera.position.set(0, 4, 50);
 	// camera.lookAt(new Vector3(0, 0, 0));
 
 	const cameraXPosGroup = new Group();
@@ -248,7 +257,9 @@ const init = () => {
 	cameraZRotationGroup.add(cameraYRotationGroup);
 	// // scene.add(cameraZRotationGroup)
 
-	cameraZPosGroup.position.z = 100;
+	cameraXPosGroup.position.x = camera.position.x;
+	cameraYPosGroup.position.y = camera.position.y;
+	cameraZPosGroup.position.z = camera.position.z;
 
 	const stats = Stats();
 	document.body.appendChild(stats.dom);
@@ -500,6 +511,8 @@ const init = () => {
 	const controls = new OrbitControls(camera, render.domElement);
 
 	update({ render, scene, camera, controls, stats, clock });
+
+	return scene;
 };
 
 init();
