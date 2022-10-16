@@ -55,6 +55,7 @@ const getBox = (
 
 	return mesh;
 };
+
 const getSphere = (
 	radius?: number | undefined,
 	widthSegments?: number | undefined,
