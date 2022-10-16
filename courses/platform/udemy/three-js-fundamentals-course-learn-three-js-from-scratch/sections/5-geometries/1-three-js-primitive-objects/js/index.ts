@@ -20,7 +20,6 @@ import {
 	MeshLambertMaterial,
 	MeshPhongMaterial,
 	MeshStandardMaterial,
-	Object3D,
 	OctahedronGeometry,
 	PerspectiveCamera,
 	RepeatWrapping,
@@ -176,11 +175,17 @@ const init = () => {
 	let geoActiveIndex = 0;
 	const handleGeos = () => {
 		geos.forEach((geo, geoIndex) => {
-			if (geoIndex === geoActiveIndex) return geo.scale.set(1, 1, 1);
+			if (geoIndex === geoActiveIndex) {
+				geo.scale.set(1, 1, 1);
+				return;
+			}
 			geo.scale.set(0, 0, 0);
 		});
 
-		if (geoActiveIndex + 1 === geoTypes.length) return (geoActiveIndex = 0);
+		if (geoActiveIndex + 1 === geoTypes.length) {
+			geoActiveIndex = 0;
+			return;
+		}
 		geoActiveIndex++;
 	};
 

@@ -6,11 +6,6 @@ import glob from 'glob';
 
 import { resolve as pathResolve } from 'path';
 
-// https://www.npmjs.com/package/glob
-const getHtmlFiles = function (src, callback) {
-	glob(src + '/**/*.html', callback);
-};
-
 export default async ({ mode }: UserConfig): Promise<UserConfigExport> => {
 	if (mode) process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
 
