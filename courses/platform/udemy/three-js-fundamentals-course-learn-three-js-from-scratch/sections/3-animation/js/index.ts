@@ -1,7 +1,4 @@
-// import { gui } from '@utils/common/gui';
 import { gui } from '@utils/common/gui';
-
-import Noise from 'noisejs';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module';
@@ -26,6 +23,9 @@ import {
 } from 'three';
 import type { ColorRepresentation } from 'three';
 
+import noisejs from 'noisejs';
+// import { noisejs } from 'noisejs';
+
 enum EAnimationsTypeBoxGrid {
 	SIN = 'SIN',
 	COS = 'COS',
@@ -39,7 +39,7 @@ const animationsType = {
 let zIncrementSign = -1;
 const num = 0.1;
 
-const noise = new Noise(Math.random());
+const noise = new (noisejs as any).Noise(Math.random());
 
 const getBox = (
 	x: number,

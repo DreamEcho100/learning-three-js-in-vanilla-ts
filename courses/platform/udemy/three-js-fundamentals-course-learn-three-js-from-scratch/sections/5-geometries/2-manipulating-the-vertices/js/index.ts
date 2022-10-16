@@ -1,115 +1,63 @@
 // import Noise from 'noisejs';
-
+// WebGL
 import { gui } from '@utils/common/gui';
 
 import WebGL from 'three/examples/jsm/capabilities/WebGL';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import {
-	BoxGeometry,
 	Clock,
-	ConeGeometry,
-	CubeTextureLoader,
-	CylinderGeometry,
-	DoubleSide,
+	// DoubleSide,
 	Group,
-	Material,
-	Mesh,
-	MeshBasicMaterial,
-	MeshLambertMaterial,
-	MeshPhongMaterial,
-	MeshStandardMaterial,
-	OctahedronGeometry,
+	// Material,
+	// Mesh,
+	// MeshBasicMaterial,
+	// MeshLambertMaterial,
+	// MeshPhongMaterial,
+	// MeshStandardMaterial,
 	PerspectiveCamera,
-	RepeatWrapping,
-	RGBFormat,
+	// PlaneGeometry,
 	Scene,
-	SphereGeometry,
 	SpotLight,
-	TetrahedronGeometry,
-	TextureLoader,
-	TorusGeometry,
-	TorusKnotGeometry,
 	Vector3,
 	WebGL1Renderer
 } from 'three';
 import type { ColorRepresentation } from 'three';
 
-const GEO_TYPES = [
-	'box',
-	'cone',
-	'cylinder',
-	'octahedron',
-	'sphere',
-	'tetrahedron',
-	'torus',
-	'torusKnot'
-] as const;
+// const getPlane = (
+// 	material: Material,
+// 	width?: number,
+// 	height?: number,
+// 	widthSegments?: number,
+// 	heightSegments?: number
+// ) => {
+// 	const geometry = new PlaneGeometry(
+// 		width,
+// 		height,
+// 		widthSegments,
+// 		heightSegments
+// 	);
+// 	const mesh = new Mesh(geometry, material);
+// 	mesh.receiveShadow = true;
 
-const getGeometry = (
-	type:
-		| 'box'
-		| 'cone'
-		| 'cylinder'
-		| 'octahedron'
-		| 'sphere'
-		| 'tetrahedron'
-		| 'torus'
-		| 'torusKnot' = 'box',
-	size: number,
-	material: Material
-) => {
-	const segmentMultiplier = 0.5;
+// 	return mesh;
+// };
 
-	const geometriesMap = {
-		box: () => new BoxGeometry(size, size, size),
-		cone: () => new ConeGeometry(size, size, 256 * segmentMultiplier),
-		cylinder: () => new CylinderGeometry(size, size, 32 * segmentMultiplier),
-		octahedron: () => new OctahedronGeometry(size),
-		sphere: () =>
-			new SphereGeometry(size, 32 * segmentMultiplier, 32 * segmentMultiplier),
-		tetrahedron: () => new TetrahedronGeometry(size),
-		torus: () =>
-			new TorusGeometry(
-				size / 2,
-				size / 4,
-				16 * segmentMultiplier,
-				100 * segmentMultiplier
-			),
-		torusKnot: () =>
-			new TorusKnotGeometry(
-				size / 2,
-				size / 4,
-				16 * segmentMultiplier,
-				100 * segmentMultiplier
-			)
-	};
+// const getMaterial = (
+// 	type: 'basic' | 'lambert' | 'phong' | 'standard' = 'basic',
+// 	color: string = 'rgb(255, 255, 255)'
+// ) => {
+// 	const materialOptions = { color, side: DoubleSide, wireframe: true };
 
-	const mesh = new Mesh(
-		(geometriesMap[type] || geometriesMap['box'])(),
-		material
-	);
-	mesh.castShadow = true;
-	mesh.name = type;
+// 	const materialsMap = {
+// 		basic: () => new MeshBasicMaterial(materialOptions),
+// 		lambert: () => new MeshLambertMaterial(materialOptions),
+// 		phong: () => new MeshPhongMaterial(materialOptions),
+// 		standard: () => new MeshStandardMaterial(materialOptions)
+// 	};
 
-	return mesh;
-};
-
-const getMaterial = (
-	type: 'basic' | 'lambert' | 'phong' | 'standard' = 'basic',
-	color: string = 'rgb(255, 255, 255)'
-) => {
-	const materialOptions = { color, side: DoubleSide, wireframe: true };
-
-	const materialsMap = {
-		basic: () => new MeshBasicMaterial(materialOptions),
-		lambert: () => new MeshLambertMaterial(materialOptions),
-		phong: () => new MeshPhongMaterial(materialOptions),
-		standard: () => new MeshStandardMaterial(materialOptions)
-	};
-
-	return (materialsMap[type] || materialsMap['basic'])();
-};
+// 	return (materialsMap[type] || materialsMap['basic'])();
+// };
 
 const getSpotLight = (color?: ColorRepresentation, intensity?: number) => {
 	const light = new SpotLight(color, intensity);
@@ -140,7 +88,7 @@ const update = (props: {
 		'sceneCameraGroup'
 	) as Group;
 
-	sceneCameraGroup.rotateY(Math.PI * 0.0005);
+	sceneCameraGroup.rotateY(Math.PI * 0.001);
 
 	// const timeElapsed = props.clock.getElapsedTime();
 
@@ -153,77 +101,6 @@ const update = (props: {
 
 const init = () => {
 	const scene = new Scene();
-
-	// initialize objects
-	const objectMaterial = getMaterial('standard', 'rgb(255, 255, 255)');
-	const geoTypes = GEO_TYPES;
-
-	const geos = geoTypes.map((type) => {
-		return getGeometry(type, 5, objectMaterial); // const geo =
-	});
-	scene.add(...geos);
-
-	console.log('geos', geos);
-	let geoActiveIndex = 0;
-	const handleGeos = () => {
-		geos.forEach((geo, geoIndex) => {
-			if (geoIndex === geoActiveIndex) {
-				geo.scale.set(1, 1, 1);
-				return;
-			}
-			geo.scale.set(0, 0, 0);
-		});
-
-		if (geoActiveIndex + 1 === geoTypes.length) {
-			geoActiveIndex = 0;
-			return;
-		}
-		geoActiveIndex++;
-	};
-
-	handleGeos();
-
-	setInterval(() => {
-		handleGeos();
-	}, 1000);
-
-	const bgImgsBasePath = '/img/SwedishRoyalCastle/';
-	const bgImgsFormat = '.jpg';
-
-	const bgImgsUrl = ['px', 'nx', 'py', 'ny', 'pz', 'nz'].map(
-		(item) => bgImgsBasePath + item + bgImgsFormat
-	);
-	const reflectionCube = new CubeTextureLoader().load(bgImgsUrl);
-	reflectionCube.format = RGBFormat;
-	scene.background = reflectionCube;
-
-	// Manipulate material
-	const textureLoader = new TextureLoader();
-	const maps = ['bumpMap', 'roughnessMap'];
-	const imgPath1 =
-		'/img/112-ceppo-di-gre-stone-surface-pbr-texture-seamless-hr.jpg';
-	const imgPath2 =
-		'/img/0015-marble-stone-wall-surface-texture-seamless-hr.jpg';
-	objectMaterial;
-
-	objectMaterial.map = textureLoader.load(imgPath2);
-
-	if ('bumpMap' in objectMaterial)
-		objectMaterial.bumpMap = textureLoader.load(imgPath1);
-	if ('roughnessMap' in objectMaterial)
-		objectMaterial.roughnessMap = textureLoader.load(imgPath1);
-
-	if ('bumpScale' in objectMaterial) objectMaterial.bumpScale = 0.01;
-	if ('roughness' in objectMaterial) objectMaterial.roughness = 0.5;
-	if ('metalness' in objectMaterial) objectMaterial.metalness = 0.7;
-
-	maps.forEach((value) => {
-		if (Object.hasOwn(objectMaterial, value)) {
-			(objectMaterial as Record<string, any>)[value].wrapS = RepeatWrapping;
-			(objectMaterial as Record<string, any>)[value].wrapT = RepeatWrapping;
-			(objectMaterial as Record<string, any>)[value].repeat.set(1, 1);
-		}
-	});
 
 	const lightLeft = getSpotLight('rgb(255, 220, 180)', 1);
 	const lightRight = getSpotLight('rgb(255, 220, 180)', 1);

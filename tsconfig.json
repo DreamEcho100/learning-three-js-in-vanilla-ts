@@ -16,13 +16,22 @@
 		"noUnusedParameters": true,
 		"noImplicitReturns": true,
 		"skipLibCheck": true,
-
+		"typeRoots": ["./ts/noisejs.d.ts", "node_modules/@types"],
+		"allowSyntheticDefaultImports": true,
 		"baseUrl": ".",
 		"paths": {
 			"@src/*": ["src/*"],
 			"@utils/*": ["utils/*"]
 		}
 	},
-	"include": ["src", "vite.config.ts", "utils", "courses", "ts"],
+	"include": [
+		"src",
+		"vite.config.ts",
+		"utils",
+		"courses",
+		"ts",
+		"ts/**/*.d.ts",
+		"./ts/noisejs.d.ts"
+	],
 	"exclude": ["node_modules", "dist"]
 }
