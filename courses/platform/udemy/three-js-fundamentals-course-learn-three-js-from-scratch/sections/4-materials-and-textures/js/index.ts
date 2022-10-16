@@ -1,5 +1,7 @@
 // import { gui } from '@utils/common/gui';
-import { Noise } from 'noisejs';
+// import Noise from 'noisejs';
+
+import { gui } from '@utils/common/gui';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module';
@@ -25,8 +27,6 @@ import {
 	WebGL1Renderer
 } from 'three';
 import type { ColorRepresentation } from 'three';
-
-import { gui } from '../../../../../../../utils/common/gui';
 
 const sphereArrows = {
 	up: false,
@@ -181,23 +181,23 @@ const init = () => {
 	if ('bumpMap' in sphereMaterial)
 		sphereMaterial.bumpMap = textureLoader.load(sphereMaterialImgPath);
 	if ('roughnessMap' in sphereMaterial)
-		sphereMaterial.bumpMap = textureLoader.load(sphereMaterialImgPath);
+		sphereMaterial.roughnessMap = textureLoader.load(sphereMaterialImgPath);
 	if ('bumpScale' in sphereMaterial) sphereMaterial.bumpScale = 0.01;
 	if ('metalness' in sphereMaterial) sphereMaterial.metalness = 0.1;
 	if ('roughness' in sphereMaterial) sphereMaterial.roughness = 0.7;
 
 	maps.forEach((value) => {
-		if (value in sphereMaterial && sphereMaterial[value]) {
-			sphereMaterial[value].wrapS = RepeatWrapping;
-			sphereMaterial[value].wrapT = RepeatWrapping;
-			sphereMaterial[value].repeat.set(10, 10);
+		if (Object.hasOwn(sphereMaterial, value)) {
+			(sphereMaterial as Record<string, any>)[value].wrapS = RepeatWrapping;
+			(sphereMaterial as Record<string, any>)[value].wrapT = RepeatWrapping;
+			(sphereMaterial as Record<string, any>)[value].repeat.set(10, 10);
 		}
 	});
 
 	const planeMaterial = getMaterial('phong', 'rgb(255, 255, 255)');
 	const planeMaterialImg1Path =
 		'/img/112-ceppo-di-gre-stone-surface-pbr-texture-seamless-hr.jpg';
-	const planeMaterialImg2Path = '/img/Concrete_seamless_road_texture3-hr.jpg';
+	// const planeMaterialImg2Path = '/img/Concrete_seamless_road_texture3-hr.jpg';
 	const planeMaterialImg3Path =
 		'/img/0021-stone-wall-surface-texture-seamless-hr.jpg';
 	planeMaterial.map = textureLoader.load(planeMaterialImg1Path);
@@ -205,16 +205,16 @@ const init = () => {
 	if ('bumpMap' in planeMaterial)
 		planeMaterial.bumpMap = textureLoader.load(planeMaterialImg3Path);
 	if ('roughnessMap' in planeMaterial)
-		planeMaterial.bumpMap = textureLoader.load(planeMaterialImg2Path);
+		planeMaterial.roughnessMap = textureLoader.load(planeMaterialImg3Path);
 	if ('bumpScale' in planeMaterial) planeMaterial.bumpScale = 0.01;
 	if ('metalness' in planeMaterial) planeMaterial.metalness = 0.05;
 	if ('roughness' in planeMaterial) planeMaterial.roughness = 0.05;
 
 	maps.forEach((value) => {
-		if (value in planeMaterial) {
-			planeMaterial[value].wrapS = RepeatWrapping;
-			planeMaterial[value].wrapT = RepeatWrapping;
-			planeMaterial[value].repeat.set(10, 10);
+		if (Object.hasOwn(planeMaterial, value)) {
+			(planeMaterial as Record<string, any>)[value].wrapS = RepeatWrapping;
+			(planeMaterial as Record<string, any>)[value].wrapT = RepeatWrapping;
+			(planeMaterial as Record<string, any>)[value].repeat.set(10, 10);
 		}
 	});
 

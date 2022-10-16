@@ -1,5 +1,7 @@
 // import { gui } from '@utils/common/gui';
-import { Noise } from 'noisejs';
+import { gui } from '@utils/common/gui';
+
+import Noise from 'noisejs';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module';
@@ -23,8 +25,6 @@ import {
 	WebGL1Renderer
 } from 'three';
 import type { ColorRepresentation } from 'three';
-
-import { gui } from '../../../../../../../utils/common/gui';
 
 enum EAnimationsTypeBoxGrid {
 	SIN = 'SIN',

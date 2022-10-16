@@ -23,7 +23,7 @@ import {
 } from 'three';
 import type { ColorRepresentation } from 'three';
 
-import { gui } from '../../../../../../../utils/common/gui';
+import { gui } from '@utils/common/gui';
 
 const getBox = (
 	x: number,

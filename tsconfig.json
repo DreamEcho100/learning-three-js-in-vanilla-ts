@@ -23,6 +23,6 @@
 			"@utils/*": ["utils/*"]
 		}
 	},
-	"include": ["src"],
+	"include": ["src", "vite.config.ts", "utils", "courses", "ts"],
 	"exclude": ["node_modules", "dist"]
 }

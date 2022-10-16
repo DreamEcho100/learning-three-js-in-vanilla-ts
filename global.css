@@ -54,8 +54,29 @@ body {
 	width: 100%;
 	background-color: #fff;
 	color: #444;
-	/* font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', '
-	'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans';
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale; */
+}
+
+ol,
+ul {
+	list-style-position: inside;
+}
+
+ol li,
+ul li {
+	margin-left: 1rem;
+}
+[dir='rtl'] ol li,
+[dir='rtl'] ul li {
+	margin-right: 1rem;
+}
+
+a,
+select,
+label {
+	cursor: pointer;
+}
+
+a {
+	color: currentColor;
+	text-decoration: none;
 }

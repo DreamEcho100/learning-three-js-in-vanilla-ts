@@ -3,10 +3,10 @@ import { BladeController, View } from '@tweakpane/core';
 
 import { BladeApi, Pane } from 'tweakpane';
 
-interface FPSGraph extends BladeApi<BladeController<View>> {
-	begin(): void;
-	end(): void;
-}
+// interface FPSGraph extends BladeApi<BladeController<View>> {
+// 	begin(): void;
+// 	end(): void;
+// }
 // Debug
 export const gui = new Pane();
 gui.registerPlugin(EssentialsPlugin);
