@@ -10,10 +10,6 @@ import {
 	DoubleSide,
 	Material,
 	Mesh,
-	MeshBasicMaterial,
-	MeshLambertMaterial,
-	MeshPhongMaterial,
-	MeshStandardMaterial,
 	PerspectiveCamera,
 	PlaneGeometry,
 	RepeatWrapping,
@@ -25,7 +21,8 @@ import {
 	Vector3,
 	WebGL1Renderer
 } from 'three';
-import type { ColorRepresentation } from 'three';
+
+import { getMaterial, getPlane, getSphere, getSpotLight } from '../../utils';
 
 const sphereArrows = {
 	up: false,
@@ -33,67 +30,16 @@ const sphereArrows = {
 	down: false,
 	left: false
 };
-const getMaterial = (
-	type: 'basic' | 'lambert' | 'phong' | 'standard' = 'basic',
-	color: string = 'rgb(255, 255, 255)'
-) => {
-	const materialOptions = { color, side: DoubleSide };
 
-	const materialsMap = {
-		basic: () => new MeshBasicMaterial(materialOptions),
-		lambert: () => new MeshLambertMaterial(materialOptions),
-		phong: () => new MeshPhongMaterial(materialOptions),
-		standard: () => new MeshStandardMaterial(materialOptions)
-	};
-
-	return (materialsMap[type] || materialsMap['basic'])();
-
-	// return (() => {
-	// 	switch (type) {
-	// 		case 'basic':
-	// 			return new MeshBasicMaterial(materialOptions);
-	// 		case 'lambert':
-	// 			return new MeshLambertMaterial(materialOptions);
-	// 		case 'phong':
-	// 			return new MeshPhongMaterial(materialOptions);
-	// 		case 'standard':
-	// 			return new MeshStandardMaterial(materialOptions);
-	// 		default:
-	// 			return new MeshBasicMaterial(materialOptions);
-	// 	}
-	// })();
-
-	// const selectedMaterial =
-	// return selectedMaterial;
+const sphereHandler = (material: Mesh<SphereGeometry, Material>) => {
+	material.castShadow = true;
+	return material;
 };
-const getPlane = (
-	material: Material,
-	width?: number,
-	height?: number,
-	widthSegments?: number,
-	heightSegments?: number
-) => {
-	const geometry = new PlaneGeometry(
-		width,
-		height,
-		widthSegments,
-		heightSegments
-	);
-	const mesh = new Mesh(geometry, material);
-	mesh.receiveShadow = true;
-
-	return mesh;
+const planeHandler = (material: Mesh<PlaneGeometry, Material>) => {
+	material.castShadow = true;
+	return material;
 };
-
-const getSphere = (material: Material, size: number, segments: number) => {
-	const geometry = new SphereGeometry(size, segments, segments);
-	const obj = new Mesh(geometry, material);
-	obj.castShadow = true;
-
-	return obj;
-};
-const getSpotLight = (color?: ColorRepresentation, intensity?: number) => {
-	const light = new SpotLight(color, intensity);
+const spotLightHandler = (light: SpotLight) => {
 	light.castShadow = true;
 	light.penumbra = 0.5;
 
@@ -168,8 +114,13 @@ const init = () => {
 	const textureLoader = new TextureLoader();
 	const maps = ['map', 'bumpMap', 'roughnessMap'] as const;
 
-	const sphereMaterial = getMaterial('phong', 'rgb(255, 255, 255)');
-	const sphere = getSphere(sphereMaterial, 1, 24);
+	const sphereMaterial = getMaterial('phong', {
+		color: 'rgb(255, 255, 255)',
+		side: DoubleSide
+	});
+	const sphere = sphereHandler(
+		getSphere({ radius: 1, widthSegments: 24 }, sphereMaterial)
+	);
 	sphere.name = 'mainBall';
 	const sphereMaterialImgPath =
 		'/img/112-ceppo-di-gre-stone-surface-pbr-texture-seamless-hr.jpg';
@@ -193,7 +144,10 @@ const init = () => {
 		}
 	});
 
-	const planeMaterial = getMaterial('phong', 'rgb(255, 255, 255)');
+	const planeMaterial = getMaterial('phong', {
+		color: 'rgb(255, 255, 255)',
+		side: DoubleSide
+	});
 	const planeMaterialImg1Path =
 		'/img/112-ceppo-di-gre-stone-surface-pbr-texture-seamless-hr.jpg';
 	// const planeMaterialImg2Path = '/img/Concrete_seamless_road_texture3-hr.jpg';
@@ -217,11 +171,17 @@ const init = () => {
 		}
 	});
 
-	const plane = getPlane(planeMaterial, 40, 40);
+	const plane = planeHandler(
+		getPlane({ width: 40, height: 40 }, planeMaterial)
+	);
 	// const plane = getPlane(planeMaterial, 30, 30, 1);
 
-	const lightLeft = getSpotLight('rgb(255, 220, 180)', 1);
-	const lightRight = getSpotLight('rgb(255, 220, 180)', 1);
+	const lightLeft = spotLightHandler(
+		getSpotLight({ color: 'rgb(255, 220, 180)', intensity: 1 })
+	);
+	const lightRight = spotLightHandler(
+		getSpotLight({ color: 'rgb(255, 220, 180)', intensity: 1 })
+	);
 
 	// manipulate objects
 	sphere.position.y = sphere.geometry.parameters.radius;

@@ -13,9 +13,6 @@ import {
 	DoubleSide,
 	Group,
 	Mesh,
-	MeshBasicMaterial,
-	MeshLambertMaterial,
-	MeshPhongMaterial,
 	MeshStandardMaterial,
 	PerspectiveCamera,
 	RGBFormat,
@@ -27,6 +24,8 @@ import {
 } from 'three';
 import type { ColorRepresentation } from 'three';
 
+import { getMaterial, getSpotLight } from '../../../utils';
+
 enum EGetMaterialBase {
 	basic = 'basic',
 	lambert = 'lambert',
@@ -34,60 +33,18 @@ enum EGetMaterialBase {
 	standard = 'standard'
 }
 
-// type TGetMaterialBase<T, R> = (type: T, color?: string) => R;
-// type TGetMaterial =
-// 	| TGetMaterialBase<typeof EGetMaterialBase['basic'], MeshBasicMaterial>
-// 	| TGetMaterialBase<typeof EGetMaterialBase['lambert'], MeshLambertMaterial>
-// 	| TGetMaterialBase<typeof EGetMaterialBase['phong'], MeshPhongMaterial>
-// 	| TGetMaterialBase<typeof EGetMaterialBase['standard'], MeshStandardMaterial>;
-// interface IGetMaterial {
-// 	basic: TGetMaterialBase<typeof EGetMaterialBase['basic'], MeshBasicMaterial>;
-// 	lambert: TGetMaterialBase<
-// 		typeof EGetMaterialBase['lambert'],
-// 		MeshLambertMaterial
-// 	>;
-// 	phong: TGetMaterialBase<typeof EGetMaterialBase['phong'], MeshPhongMaterial>;
-// 	standard: TGetMaterialBase<
-// 		typeof EGetMaterialBase['standard'],
-// 		MeshStandardMaterial
-// 	>;
-// }
-
-// function getMaterial(type?: EGetMaterialBase.basic, color?: string): MeshBasicMaterial;
-// function getMaterial(type: EGetMaterialBase.lambert, color?: string): MeshLambertMaterial;
-// function getMaterial(type: EGetMaterialBase.phong, color?: string): MeshPhongMaterial;
-// function getMaterial(type: EGetMaterialBase.standard, color?: string): MeshStandardMaterial;
-const getMaterial = (
-	type: EGetMaterialBase = EGetMaterialBase.basic, // : Parameters<TGetMaterial>[0] // ?: EGetMaterialBase
-	color = 'rgb(255, 255, 255)'
-) => {
-	const materialOptions = { color, side: DoubleSide, wireframe: true };
-
-	if (type === EGetMaterialBase.lambert)
-		return new MeshLambertMaterial(materialOptions);
-	if (type === EGetMaterialBase.phong)
-		return new MeshPhongMaterial(materialOptions);
-	if (type === EGetMaterialBase.standard)
-		return new MeshStandardMaterial(materialOptions);
-
-	// if (type === EGetMaterialBase.basic)
-	return new MeshBasicMaterial(materialOptions);
-};
-
 const isMeshMaterialStandard = (mesh: any): mesh is MeshStandardMaterial => {
 	if (mesh instanceof MeshStandardMaterial) return true;
 	return false;
 };
 
-const getSpotLight = (color?: ColorRepresentation, intensity?: number) => {
-	const light = new SpotLight(color, intensity);
+const spotLightHandler = (light: SpotLight) => {
 	light.castShadow = true;
 	light.penumbra = 0.5;
 
 	light.shadow.mapSize.width = 2048;
 	light.shadow.mapSize.height = 2048;
 	light.shadow.bias = 0.001;
-
 	return light;
 };
 
@@ -139,10 +96,11 @@ const init = () => {
 	OBGGeometryLoader.load('/3d/Glider Flying/FFGLOBJ.obj', (OBGObject) => {
 		const colorMap = textureLoader.load('/3d/Glider Flying/FLFRTS.JPG'); // FFGLOBJ.mtl
 		const bumpMap = textureLoader.load('/3d/Glider Flying/FLFRTS.JPG'); // FFGLOBJ.mtl
-		const OBGObjectMaterial = getMaterial(
-			EGetMaterialBase.standard,
-			'rgb(255, 255, 255)'
-		);
+		const OBGObjectMaterial = getMaterial(EGetMaterialBase.standard, {
+			color: 'rgb(255, 255, 255)',
+			side: DoubleSide,
+			wireframe: true
+		});
 
 		if (isMeshMaterialStandard(OBGObjectMaterial))
 			OBGObject.traverse((child) => {
@@ -177,9 +135,15 @@ const init = () => {
 		scene.add(OBGObject);
 	});
 
-	const lightLeft = getSpotLight('rgb(255, 220, 180)', 1);
-	const lightRight = getSpotLight('rgb(255, 220, 180)', 1);
-	const lightBottom = getSpotLight('rgb(255, 220, 180)', 0.33);
+	const lightLeft = spotLightHandler(
+		getSpotLight({ color: 'rgb(255, 220, 180)', intensity: 1 })
+	);
+	const lightRight = spotLightHandler(
+		getSpotLight({ color: 'rgb(255, 220, 180)', intensity: 1 })
+	);
+	const lightBottom = spotLightHandler(
+		getSpotLight({ color: 'rgb(255, 220, 180)', intensity: 0.33 })
+	);
 
 	lightLeft.position.set(-5, 2, -4);
 	lightRight.position.set(5, 2, -4);

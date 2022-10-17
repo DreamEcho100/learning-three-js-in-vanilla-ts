@@ -1,42 +1,14 @@
 import {
-	BoxGeometry,
 	DoubleSide,
 	FogExp2,
-	Mesh,
 	MeshBasicMaterial,
 	PerspectiveCamera,
-	PlaneGeometry,
 	Scene,
 	Vector3,
 	WebGL1Renderer
 } from 'three';
-import type { ColorRepresentation } from 'three';
 
-const getBox = (
-	x: number,
-	y: number,
-	z: number,
-	color?: ColorRepresentation
-) => {
-	const geometry = new BoxGeometry(x, y, z);
-	const material = new MeshBasicMaterial({ color });
-	const mesh = new Mesh(geometry, material);
-
-	return mesh;
-};
-
-const getPlane = (
-	x: number,
-	y: number,
-	z: number,
-	color?: ColorRepresentation
-) => {
-	const geometry = new PlaneGeometry(x, y, z);
-	const material = new MeshBasicMaterial({ color, side: DoubleSide });
-	const mesh = new Mesh(geometry, material);
-
-	return mesh;
-};
+import { getBox, getPlane } from '../../utils';
 
 const update = (
 	render: WebGL1Renderer,
@@ -73,11 +45,20 @@ const init = () => {
 	// The director
 
 	// Populating the Scene in three js
-	const mesh = getBox(1, 1, 1, 0x915f04);
+	const mesh = getBox(
+		{ width: 1, height: 1, widthSegments: 1 },
+		new MeshBasicMaterial({ color: 0x915f04 })
+	);
 	mesh.position.y = mesh.geometry.parameters.height * 0.5;
 
 	// Creating more geometry objects in three js
-	const plane = getPlane(20, 20, 20, 0x3f9090);
+	const plane = getPlane(
+		{ width: 20, height: 20, widthSegments: 20 },
+		new MeshBasicMaterial({
+			color: 0x3f9090,
+			side: DoubleSide
+		})
+	);
 	plane.name = 'plane-1';
 	plane.rotation.x = Math.PI / 2;
 

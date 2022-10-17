@@ -1,96 +1,23 @@
+import { gui } from '@utils/common/gui';
+
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import {
-	AmbientLight,
 	BoxGeometry,
-	DirectionalLight,
 	DoubleSide,
 	FogExp2,
 	Group,
+	Material,
 	Mesh,
-	MeshBasicMaterial,
 	MeshPhongMaterial,
 	PerspectiveCamera,
-	PlaneGeometry,
-	PointLight,
 	Scene,
-	SphereGeometry,
-	SpotLight,
 	Vector3,
 	WebGL1Renderer
 } from 'three';
-import type { ColorRepresentation } from 'three';
 
-import { gui } from '@utils/common/gui';
+import { getAmbientLight, getBox, getDirectionalLight, getMaterial, getPlane, getPointLight, getSphere, getSpotLight } from '../../utils';
 
-const getBox = (
-	x: number,
-	y: number,
-	z: number,
-	color?: ColorRepresentation
-) => {
-	const geometry = new BoxGeometry(x, y, z);
-	const material = new MeshPhongMaterial({ color });
-	const mesh = new Mesh(geometry, material);
-
-	mesh.castShadow = true;
-
-	return mesh;
-};
-const getSphere = (
-	radius?: number | undefined,
-	widthSegments?: number | undefined,
-	heightSegments?: number | undefined,
-	color?: ColorRepresentation
-) => {
-	const geometry = new SphereGeometry(radius, widthSegments, heightSegments);
-	const material = new MeshBasicMaterial({ color });
-	return new Mesh(geometry, material); // mesh
-};
-
-const getPlane = (
-	x: number,
-	y: number,
-	z: number,
-	color?: ColorRepresentation
-) => {
-	const geometry = new PlaneGeometry(x, y, z);
-	const material = new MeshPhongMaterial({ color, side: DoubleSide });
-
-	const mesh = new Mesh(geometry, material);
-
-	mesh.receiveShadow = true;
-
-	return mesh;
-};
-
-const getPointLight = (color: ColorRepresentation, intensity: number) => {
-	const light = new PointLight(color, intensity);
-	light.castShadow = true;
-
-	return light;
-};
-const getSpotLight = (color: ColorRepresentation, intensity: number) => {
-	const light = new SpotLight(color, intensity);
-	light.castShadow = true;
-
-	return light;
-};
-const getDirectionalLight = (color: ColorRepresentation, intensity: number) => {
-	const light = new DirectionalLight(color, intensity);
-	light.castShadow = true;
-	light.shadow.camera.left = -10;
-	light.shadow.camera.bottom = -10;
-	light.shadow.camera.right = 10;
-	light.shadow.camera.top = 10;
-
-	return light;
-};
-const getAmbientLight = (color: ColorRepresentation, intensity: number) => {
-	const light = new AmbientLight(color, intensity);
-
-	return light;
-};
 // const getRectAreaLight = (color: ColorRepresentation, intensity: number) => {
 // 	const light = new RectAreaLight(color, intensity);
 // 	light.castShadow = true;
@@ -101,19 +28,25 @@ const getAmbientLight = (color: ColorRepresentation, intensity: number) => {
 const getBoxGrid = (amount: number, gapMultiplier: number) => {
 	const group = new Group();
 
-	let obj1: Mesh<BoxGeometry, MeshPhongMaterial>;
-	let obj2: Mesh<BoxGeometry, MeshPhongMaterial>;
+	let obj1: Mesh<BoxGeometry, Material>;
+	let obj2: Mesh<BoxGeometry, Material>;
 	let i = 0;
 	let j = 1;
 	for (; i < amount; i++) {
-		obj1 = getBox(1, 1, 1); // 'rgb(120, 120, 120)'
+		obj1 = getBox(
+			{ width: 1, height: 1, widthSegments: 1 },
+			getMaterial('basic', { color: 'rgb(255, 255, 255)' })
+		); // 'rgb(120, 120, 120)'
 		obj1.position.x = i * gapMultiplier;
 		obj1.position.y = obj1.geometry.parameters.height / 2;
 		group.add(obj1);
 
 		j = 1;
 		for (; j < amount; j++) {
-			obj2 = getBox(1, 1, 1); // 'rgb(120, 120, 120)'
+			obj2 = getBox(
+				{ width: 1, height: 1, widthSegments: 1 },
+				getMaterial('basic', { color: 'rgb(255, 255, 255)' })
+			); // 'rgb(120, 120, 120)'
 			obj2.position.x = i * gapMultiplier;
 			obj2.position.y = obj2.geometry.parameters.height / 2;
 			obj2.position.z = j * gapMultiplier;
@@ -173,45 +106,95 @@ const init = () => {
 	const boxGrid = getBoxGrid(10, 1.5);
 
 	// Creating more geometry objects in three js
-	const plane = getPlane(20, 20, 20, 'rgb(120, 120, 120)');
+	const planeMaterial = new MeshPhongMaterial({
+		color: 'rgb(120, 120, 120)',
+		side: DoubleSide
+	});
+	const plane = getPlane(
+		{ width: 20, height: 20, widthSegments: 20 },
+		planeMaterial
+	);
+	plane.receiveShadow = true;
 	plane.name = 'plane-1';
 	plane.rotation.x = Math.PI / 2;
 
 	const lightsGap = 0.1;
 
-	const sphere1 = getSphere(0.05, 20, 20, 0xffffff);
-	const planeLight = getPointLight(0xffffff, 1);
-	// planeLight.visible = false;
-	planeLight.position.y = 2;
-	planeLight.add(sphere1);
+	const sphereMaterial = getMaterial('basic', { color: 0xffffff });
 
-	const sphere2 = getSphere(0.05, 20, 20, 0xffffff);
-	const spotLight = getSpotLight(0xffffff, 1);
+	const sphere1 = getSphere(
+		{ radius: 0.05, widthSegments: 20, heightSegments: 20 },
+		sphereMaterial
+	);
+	const planeLight = getPointLight(
+		{ color: 0xffffff, intensity: 1 },
+		(light) => {
+			light.castShadow = true;
+			light.position.y = 2;
+			light.add(sphere1);
+		}
+	);
+
+	const sphere2 = getSphere(
+		{ radius: 0.05, widthSegments: 20, heightSegments: 20 },
+		sphereMaterial
+	);
+	const spotLight = getSpotLight({ color: 0xffffff, intensity: 1 }, (light) => {
+		light.castShadow = true;
+	});
+
 	spotLight.visible = false;
 	spotLight.position.y = 2;
 	spotLight.position.x =
 		planeLight.position.x + sphere1.geometry.parameters.radius * 2 + lightsGap;
 	spotLight.add(sphere2);
 
-	const sphere3 = getSphere(0.05, 20, 20, 0xffffff);
-	const directionalLight = getDirectionalLight(0xffffff, 1);
+	const sphere3 = getSphere(
+		{ radius: 0.05, widthSegments: 20, heightSegments: 20 },
+		sphereMaterial
+	);
+	const directionalLight = getDirectionalLight(
+		{ color: 0xffffff, intensity: 1 },
+		(light) => {
+			light.castShadow = true;
+			light.shadow.camera.left = -10;
+			light.shadow.camera.bottom = -10;
+			light.shadow.camera.right = 10;
+			light.shadow.camera.top = 10;
+			//
+			light.visible = false;
+			light.position.y = 4;
+			light.position.x = 13;
+			light.position.z = 1;
+			light.add(sphere3);
+		}
+	);
 	directionalLight.visible = false;
 	directionalLight.position.y = 4;
 	directionalLight.position.x = 13;
 	directionalLight.position.z = 1;
 	directionalLight.add(sphere3);
 
-	const sphere4 = getSphere(0.05, 20, 20, 0xffffff);
+	const sphere4 = getSphere(
+		{ radius: 0.05, widthSegments: 20, heightSegments: 20 },
+		sphereMaterial
+	);
 	sphere4.visible = false;
-	const ambientLight = getAmbientLight(0xb2b1a5, 0.5);
-	ambientLight.visible = false;
-	ambientLight.position.y = 2;
-	ambientLight.position.x =
-		// directionalLight.position.x +
-		// sphere3.geometry.parameters.radius * 2 +
-		// lightsGap;
-		spotLight.position.x + sphere2.geometry.parameters.radius * 2 + lightsGap;
-	ambientLight.add(sphere4);
+	const ambientLight = getAmbientLight(
+		{
+			color: 0xb2b1a5,
+			intensity: 0.5
+		},
+		(light) => {
+			light.visible = false;
+			light.position.y = 2;
+			light.position.x =
+				spotLight.position.x +
+				sphere2.geometry.parameters.radius * 2 +
+				lightsGap;
+			light.add(sphere4);
+		}
+	);
 
 	// const sphere5 = getSphere(0.05, 20, 20, 0xffffff);
 	// const rectAreaLight = getRectAreaLight(0xffffff, 1);

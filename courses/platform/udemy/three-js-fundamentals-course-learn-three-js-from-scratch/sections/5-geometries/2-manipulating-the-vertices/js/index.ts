@@ -11,10 +11,6 @@ import {
 	Group,
 	Material,
 	Mesh,
-	MeshBasicMaterial,
-	MeshLambertMaterial,
-	MeshPhongMaterial,
-	MeshStandardMaterial,
 	PerspectiveCamera,
 	PlaneGeometry,
 	Scene,
@@ -22,47 +18,10 @@ import {
 	Vector3,
 	WebGL1Renderer
 } from 'three';
-import type { ColorRepresentation } from 'three';
 
-const getPlane = (
-	material: Material,
-	width?: number,
-	height?: number,
-	widthSegments?: number,
-	heightSegments?: number
-) => {
-	const geometry = new PlaneGeometry(
-		width,
-		height,
-		widthSegments,
-		heightSegments
-	);
-	material.side = DoubleSide;
-	const mesh = new Mesh(geometry, material);
-	mesh.receiveShadow = true;
-	mesh.castShadow = true;
+import { getMaterial, getPlane, getSpotLight } from '../../../utils';
 
-	return mesh;
-};
-
-const getMaterial = (
-	type: 'basic' | 'lambert' | 'phong' | 'standard' = 'basic',
-	color: string = 'rgb(255, 255, 255)'
-) => {
-	const materialOptions = { color, side: DoubleSide, wireframe: true };
-
-	const materialsMap = {
-		basic: () => new MeshBasicMaterial(materialOptions),
-		lambert: () => new MeshLambertMaterial(materialOptions),
-		phong: () => new MeshPhongMaterial(materialOptions),
-		standard: () => new MeshStandardMaterial(materialOptions)
-	};
-
-	return (materialsMap[type] || materialsMap['basic'])();
-};
-
-const getSpotLight = (color?: ColorRepresentation, intensity?: number) => {
-	const light = new SpotLight(color, intensity);
+const spotLightHandler = (light: SpotLight) => {
 	light.castShadow = true;
 	light.penumbra = 0.5;
 
@@ -154,16 +113,35 @@ const update = (props: {
 const init = () => {
 	const scene = new Scene();
 
-	const planeMaterial = getMaterial('basic', 'rgb(255, 255, 255)');
-	const plane = getPlane(planeMaterial, 30, 60, 40, 40);
+	const planeMaterial = getMaterial(
+		'basic',
+		{
+			color: 'rgb(255, 255, 255)',
+			side: DoubleSide,
+			wireframe: true
+		},
+		(material) => {
+			material.side = DoubleSide;
+		}
+	);
+	const plane = getPlane(
+		{ width: 30, height: 60, widthSegments: 40, heightSegments: 40 },
+		planeMaterial
+	);
 
 	plane.rotation.x = Math.PI * 0.5;
 	// plane.rotation.y = Math.PI * 0.5;
 	plane.name = 'plane-1';
 
-	const lightLeft = getSpotLight('rgb(255, 220, 180)', 1);
-	const lightRight = getSpotLight('rgb(255, 220, 180)', 1);
-	const lightBottom = getSpotLight('rgb(255, 220, 180)', 0.33);
+	const lightLeft = spotLightHandler(
+		getSpotLight({ color: 'rgb(255, 220, 180)', intensity: 1 })
+	);
+	const lightRight = spotLightHandler(
+		getSpotLight({ color: 'rgb(255, 220, 180)', intensity: 1 })
+	);
+	const lightBottom = spotLightHandler(
+		getSpotLight({ color: 'rgb(255, 220, 180)', intensity: 0.33 })
+	);
 
 	lightLeft.position.set(-5, 2, -4);
 	lightRight.position.set(5, 2, -4);
