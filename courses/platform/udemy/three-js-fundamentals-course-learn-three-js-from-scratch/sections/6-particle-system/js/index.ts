@@ -66,10 +66,11 @@ const init = () => {
 		}
 	);
 
+	// https://threejs.org/docs/#api/en/core/BufferGeometry
 
-	const particleGeoVertices: number[] = []; 
-	const particleGeoVertices32 = new Float32Array(3000); 
-	const particleGeo = new BufferGeometry(); 
+	const particleGeoVertices: number[] = [];
+	const particleGeoVertices32 = new Float32Array(3000);
+	const particleGeo = new BufferGeometry();
 
 	const particleMaterial = new PointsMaterial({
 		color: 'rgb(255, 255, 255)',
