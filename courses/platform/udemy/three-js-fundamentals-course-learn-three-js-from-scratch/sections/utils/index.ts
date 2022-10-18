@@ -14,7 +14,10 @@ import {
 	DirectionalLight,
 	PointLight,
 	Light,
-	BoxGeometry
+	BoxGeometry,
+	PerspectiveCamera,
+	Scene,
+	WebGL1Renderer
 } from 'three';
 
 type TColorRepresentation = string | number | Color; // ColorRepresentation
@@ -251,3 +254,37 @@ export const getBox = (
 
 // 	return mesh;
 // };
+
+export const handleKeepPerspectiveCameraAspectRatioOnResize = ({
+	camera,
+	scene,
+	renderer
+}: {
+	camera: PerspectiveCamera;
+	scene: Scene;
+	renderer: WebGL1Renderer;
+}) => {
+	const tanFOV = Math.tan(((Math.PI / 180) * camera.fov) / 2);
+
+	window.addEventListener('resize', onWindowResize, false);
+
+	function onWindowResize() {
+		camera.aspect = window.innerWidth / window.innerHeight;
+
+		// adjust the FOV
+		camera.fov =
+			(360 / Math.PI) *
+			Math.atan(tanFOV * (window.innerHeight / window.innerHeight));
+
+		camera.updateProjectionMatrix();
+		camera.lookAt(scene.position);
+
+		renderer.setSize(window.innerWidth, window.innerHeight);
+		renderer.render(scene, camera);
+	}
+
+	return {
+		removeEventListener: () =>
+			window.removeEventListener('resize', onWindowResize, false)
+	};
+};

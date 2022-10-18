@@ -24,7 +24,11 @@ import {
 } from 'three';
 import type { ColorRepresentation } from 'three';
 
-import { getMaterial, getSpotLight } from '../../../utils';
+import {
+	getMaterial,
+	getSpotLight,
+	handleKeepPerspectiveCameraAspectRatioOnResize
+} from '../../../utils';
 
 enum EGetMaterialBase {
 	basic = 'basic',
@@ -49,14 +53,14 @@ const spotLightHandler = (light: SpotLight) => {
 };
 
 const update = (props: {
-	render: WebGL1Renderer;
+	renderer: WebGL1Renderer;
 	scene: Scene;
 	camera: PerspectiveCamera;
 	controls: OrbitControls;
 	stats: Stats;
 	clock: Clock;
 }) => {
-	props.render.render(props.scene, props.camera);
+	props.renderer.render(props.scene, props.camera);
 
 	props.controls.update();
 	props.stats.update();
@@ -70,8 +74,7 @@ const update = (props: {
 	// const timeElapsed = props.clock.getElapsedTime();
 
 	// request Animation frame
-	requestAnimationFrame((/* time */) => {
-		// console.log('time', time);
+	requestAnimationFrame(() => {
 		update(props);
 	});
 };
@@ -258,29 +261,27 @@ const init = () => {
 	const canvas = document.getElementById('webgl');
 	if (!canvas) throw new Error('Can not find canvas');
 
-	const render = new WebGL1Renderer({
+	const renderer = new WebGL1Renderer({
 		canvas,
 		antialias: true
 	});
-	render.setSize(window.innerWidth, window.innerHeight);
-	render.shadowMap.enabled = true;
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.shadowMap.enabled = true;
 
-	render.setClearColor('rgb(0, 0, 0)');
+	renderer.setClearColor('rgb(0, 0, 0)');
 
-	const controls = new OrbitControls(camera, render.domElement);
+	const controls = new OrbitControls(camera, renderer.domElement);
 	const stats = Stats();
 	const clock = new Clock();
 
-	document.body.appendChild(render.domElement);
+	document.body.appendChild(renderer.domElement);
 	document.body.appendChild(stats.dom);
 	if (WebGL.isWebGLAvailable()) {
-		// Initiate function or other initializations here
-		update({ render, scene, camera, controls, stats, clock });
-		// animate();
+		handleKeepPerspectiveCameraAspectRatioOnResize({ camera, scene, renderer });
+		update({ renderer, scene, camera, controls, stats, clock });
 	} else {
 		const warning = WebGL.getWebGLErrorMessage();
 		alert(warning.textContent);
-		// document.getElementById( 'container' ).appendChild( warning );
 	}
 };
 

@@ -17,17 +17,20 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import WebGL from 'three/examples/jsm/capabilities/WebGL';
 
-import { getPlane } from '../../utils';
+import {
+	getPlane,
+	handleKeepPerspectiveCameraAspectRatioOnResize
+} from '../../utils';
 
 const update = (props: {
-	render: WebGL1Renderer;
+	renderer: WebGL1Renderer;
 	scene: Scene;
 	camera: PerspectiveCamera;
 	controls: OrbitControls;
 	stats: Stats;
 	clock: Clock;
 }) => {
-	props.render.render(props.scene, props.camera);
+	props.renderer.render(props.scene, props.camera);
 
 	props.controls.update();
 	props.stats.update();
@@ -52,9 +55,9 @@ const update = (props: {
 		// particlePosZ = positionAttribute.getZ(i);
 		positionAttribute.setXY(
 			i,
-			particlePosX < -10 ? 10 : particlePosX + (Math.random() - 1) * 0.1,
-			particlePosY < -10
-				? 10
+			particlePosX < -15 ? 15 : particlePosX + (Math.random() - 1) * 0.1,
+			particlePosY < -15
+				? 15
 				: positionAttribute.getY(i) + (Math.random() - 0.75) * 0.1
 			// particlePosZ > 0 ? -10 : positionAttribute.getZ(i) + Math.random() * 0.1
 		);
@@ -138,29 +141,28 @@ const init = () => {
 	const canvas = document.getElementById('webgl');
 	if (!canvas) throw new Error('Can not find canvas');
 
-	const render = new WebGL1Renderer({
+	const renderer = new WebGL1Renderer({
 		canvas,
 		antialias: true
 	});
-	render.setSize(window.innerWidth, window.innerHeight);
-	render.shadowMap.enabled = true;
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.shadowMap.enabled = true;
 
-	render.setClearColor('rgb(0, 0, 0)');
+	renderer.setClearColor('rgb(0, 0, 0)');
 
-	const controls = new OrbitControls(camera, render.domElement);
+	const controls = new OrbitControls(camera, renderer.domElement);
 	const stats = Stats();
 	const clock = new Clock();
 
-	document.body.appendChild(render.domElement);
+	document.body.appendChild(renderer.domElement);
 	document.body.appendChild(stats.dom);
+
 	if (WebGL.isWebGLAvailable()) {
-		// Initiate function or other initializations here
-		update({ render, scene, camera, controls, stats, clock });
-		// animate();
+		handleKeepPerspectiveCameraAspectRatioOnResize({ camera, scene, renderer });
+		update({ renderer, scene, camera, controls, stats, clock });
 	} else {
 		const warning = WebGL.getWebGLErrorMessage();
 		alert(warning.textContent);
-		// document.getElementById( 'container' ).appendChild( warning );
 	}
 };
 

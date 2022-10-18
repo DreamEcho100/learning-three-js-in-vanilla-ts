@@ -1,4 +1,6 @@
+import WebGL from 'three/examples/jsm/capabilities/WebGL';
 import {
+	Clock,
 	DoubleSide,
 	FogExp2,
 	MeshBasicMaterial,
@@ -7,25 +9,36 @@ import {
 	Vector3,
 	WebGL1Renderer
 } from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import Stats from 'three/examples/jsm/libs/stats.module';
 
-import { getBox, getPlane } from '../../utils';
+import {
+	getBox,
+	getPlane,
+	handleKeepPerspectiveCameraAspectRatioOnResize
+} from '../../utils';
 
-const update = (
-	render: WebGL1Renderer,
-	scene: Scene,
-	camera: PerspectiveCamera
-) => {
-	render.render(scene, camera);
+const update = (props: {
+	renderer: WebGL1Renderer;
+	scene: Scene;
+	camera: PerspectiveCamera;
+	controls: OrbitControls;
+	stats: Stats;
+	clock: Clock;
+}) => {
+	props.renderer.render(props.scene, props.camera);
 
-	const plane1 = scene.getObjectByName('plane-1');
+	props.controls.update();
+	props.stats.update();
+
+	const plane1 = props.scene.getObjectByName('plane-1');
 	if (plane1) {
 		plane1.rotation.y += 0.01;
 		plane1.rotation.z += 0.01;
 	}
 	// request Animation frame
-	requestAnimationFrame((/* time */) => {
-		// console.log('time', time);
-		update(render, scene, camera);
+	requestAnimationFrame(() => {
+		update(props);
 	});
 };
 
@@ -65,13 +78,24 @@ const init = () => {
 	scene.add(plane);
 	plane.add(mesh);
 
-	const render = new WebGL1Renderer();
-	render.setSize(window.innerWidth, window.innerHeight);
+	const renderer = new WebGL1Renderer();
+	renderer.setSize(window.innerWidth, window.innerHeight);
 
-	render.setClearColor(0x300090);
+	renderer.setClearColor(0x300090);
 
-	document.getElementById('webgl')?.appendChild(render.domElement);
-	update(render, scene, camera);
+	document.getElementById('webgl')?.appendChild(renderer.domElement);
+
+	const clock = new Clock();
+	const stats = Stats();
+	const controls = new OrbitControls(camera, renderer.domElement);
+
+	if (WebGL.isWebGLAvailable()) {
+		handleKeepPerspectiveCameraAspectRatioOnResize({ camera, scene, renderer });
+		update({ renderer, scene, camera, controls, stats, clock });
+	} else {
+		const warning = WebGL.getWebGLErrorMessage();
+		alert(warning.textContent);
+	}
 };
 
 init();

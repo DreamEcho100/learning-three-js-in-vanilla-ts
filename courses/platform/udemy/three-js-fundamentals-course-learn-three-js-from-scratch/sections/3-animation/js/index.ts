@@ -1,5 +1,6 @@
 import { gui } from '@utils/common/gui';
 
+import WebGL from 'three/examples/jsm/capabilities/WebGL';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import {
@@ -25,7 +26,8 @@ import {
 	getPlane,
 	getPointLight,
 	getSphere,
-	getSpotLight
+	getSpotLight,
+	handleKeepPerspectiveCameraAspectRatioOnResize
 } from '../../utils';
 import { getMaterial } from './../../utils/index';
 // import { noisejs } from 'noisejs';
@@ -56,7 +58,7 @@ const getBoxGrid = (amount: number, gapMultiplier: number) => {
 	for (; i < amount; i++) {
 		obj1 = getBox(
 			{ width: 1, height: 1, widthSegments: 1 },
-			getMaterial('basic', { color: 'rgb(255, 255, 255)' })
+			getMaterial('phong', { color: 'rgb(255, 255, 255)' })
 		);
 		obj1.position.x = i * gapMultiplier;
 		obj1.position.y = obj1.geometry.parameters.height / 2;
@@ -66,7 +68,7 @@ const getBoxGrid = (amount: number, gapMultiplier: number) => {
 		for (; j < amount; j++) {
 			obj2 = getBox(
 				{ width: 1, height: 1, widthSegments: 1 },
-				getMaterial('basic', { color: 'rgb(255, 255, 255)' })
+				getMaterial('phong', { color: 'rgb(255, 255, 255)' })
 			);
 			obj2.position.x = i * gapMultiplier;
 			obj2.position.y = obj2.geometry.parameters.height / 2;
@@ -82,14 +84,14 @@ const getBoxGrid = (amount: number, gapMultiplier: number) => {
 };
 
 const update = (props: {
-	render: WebGL1Renderer;
+	renderer: WebGL1Renderer;
 	scene: Scene;
 	camera: PerspectiveCamera;
 	controls: OrbitControls;
 	stats: Stats;
 	clock: Clock;
 }) => {
-	props.render.render(props.scene, props.camera);
+	props.renderer.render(props.scene, props.camera);
 
 	props.controls.update();
 	props.stats.update();
@@ -130,8 +132,7 @@ const update = (props: {
 		});
 
 	// request Animation frame
-	requestAnimationFrame((/* time */) => {
-		// console.log('time', time);
+	requestAnimationFrame(() => {
 		update(props);
 	});
 };
@@ -482,20 +483,26 @@ const init = () => {
 	const canvas = document.getElementById('webgl');
 	if (!canvas) throw new Error('Can not find canvas');
 
-	const render = new WebGL1Renderer({
+	const renderer = new WebGL1Renderer({
 		canvas,
 		antialias: true
 	});
-	render.setSize(window.innerWidth, window.innerHeight);
-	render.shadowMap.enabled = true;
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.shadowMap.enabled = true;
 
-	render.setClearColor('rgb(120, 120, 120)');
+	renderer.setClearColor('rgb(120, 120, 120)');
 
-	document.body.appendChild(render.domElement);
+	document.body.appendChild(renderer.domElement);
 
-	const controls = new OrbitControls(camera, render.domElement);
+	const controls = new OrbitControls(camera, renderer.domElement);
 
-	update({ render, scene, camera, controls, stats, clock });
+	if (WebGL.isWebGLAvailable()) {
+		handleKeepPerspectiveCameraAspectRatioOnResize({ camera, scene, renderer });
+		update({ renderer, scene, camera, controls, stats, clock });
+	} else {
+		const warning = WebGL.getWebGLErrorMessage();
+		alert(warning.textContent);
+	}
 
 	return scene;
 };

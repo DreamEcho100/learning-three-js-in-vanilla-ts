@@ -1,9 +1,11 @@
 import { gui } from '@utils/common/gui';
 
+import WebGL from 'three/examples/jsm/capabilities/WebGL';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import {
 	BoxGeometry,
+	Clock,
 	DoubleSide,
 	FogExp2,
 	Group,
@@ -16,7 +18,17 @@ import {
 	WebGL1Renderer
 } from 'three';
 
-import { getAmbientLight, getBox, getDirectionalLight, getMaterial, getPlane, getPointLight, getSphere, getSpotLight } from '../../utils';
+import {
+	getAmbientLight,
+	getBox,
+	getDirectionalLight,
+	getMaterial,
+	getPlane,
+	getPointLight,
+	getSphere,
+	getSpotLight,
+	handleKeepPerspectiveCameraAspectRatioOnResize
+} from '../../utils';
 
 // const getRectAreaLight = (color: ColorRepresentation, intensity: number) => {
 // 	const light = new RectAreaLight(color, intensity);
@@ -35,7 +47,7 @@ const getBoxGrid = (amount: number, gapMultiplier: number) => {
 	for (; i < amount; i++) {
 		obj1 = getBox(
 			{ width: 1, height: 1, widthSegments: 1 },
-			getMaterial('basic', { color: 'rgb(255, 255, 255)' })
+			getMaterial('phong', { color: 'rgb(255, 255, 255)' })
 		); // 'rgb(120, 120, 120)'
 		obj1.position.x = i * gapMultiplier;
 		obj1.position.y = obj1.geometry.parameters.height / 2;
@@ -45,7 +57,7 @@ const getBoxGrid = (amount: number, gapMultiplier: number) => {
 		for (; j < amount; j++) {
 			obj2 = getBox(
 				{ width: 1, height: 1, widthSegments: 1 },
-				getMaterial('basic', { color: 'rgb(255, 255, 255)' })
+				getMaterial('phong', { color: 'rgb(255, 255, 255)' })
 			); // 'rgb(120, 120, 120)'
 			obj2.position.x = i * gapMultiplier;
 			obj2.position.y = obj2.geometry.parameters.height / 2;
@@ -60,22 +72,22 @@ const getBoxGrid = (amount: number, gapMultiplier: number) => {
 	return group;
 };
 
-const update = (
-	render: WebGL1Renderer,
-	scene: Scene,
-	camera: PerspectiveCamera,
-	controls: OrbitControls,
-	stats: Stats
-) => {
-	render.render(scene, camera);
+const update = (props: {
+	renderer: WebGL1Renderer;
+	scene: Scene;
+	camera: PerspectiveCamera;
+	controls: OrbitControls;
+	stats: Stats;
+	clock: Clock;
+}) => {
+	props.renderer.render(props.scene, props.camera);
 
-	controls.update();
-	stats.update();
+	props.controls.update();
+	props.stats.update();
 
 	// request Animation frame
-	requestAnimationFrame((/* time */) => {
-		// console.log('time', time);
-		update(render, scene, camera, controls, stats);
+	requestAnimationFrame(() => {
+		update(props);
 	});
 };
 
@@ -105,18 +117,19 @@ const init = () => {
 
 	const boxGrid = getBoxGrid(10, 1.5);
 
-	// Creating more geometry objects in three js
-	const planeMaterial = new MeshPhongMaterial({
-		color: 'rgb(120, 120, 120)',
-		side: DoubleSide
-	});
+	// Creating more geometry objects in three jss
 	const plane = getPlane(
 		{ width: 20, height: 20, widthSegments: 20 },
-		planeMaterial
+		getMaterial('phong', {
+			color: 'rgb(255, 255, 255)',
+			side: DoubleSide
+		}),
+		(plane) => {
+			plane.receiveShadow = true;
+			plane.name = 'plane-1';
+			plane.rotation.x = Math.PI / 2;
+		}
 	);
-	plane.receiveShadow = true;
-	plane.name = 'plane-1';
-	plane.rotation.x = Math.PI / 2;
 
 	const lightsGap = 0.1;
 
@@ -351,20 +364,28 @@ const init = () => {
 	const canvas = document.getElementById('webgl');
 	if (!canvas) throw new Error('Can not find canvas');
 
-	const render = new WebGL1Renderer({
+	const clock = new Clock();
+
+	const renderer = new WebGL1Renderer({
 		canvas,
 		antialias: true
 	});
-	render.setSize(window.innerWidth, window.innerHeight);
-	render.shadowMap.enabled = true;
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.shadowMap.enabled = true;
 
-	render.setClearColor('rgb(120, 120, 120)');
+	renderer.setClearColor('rgb(120, 120, 120)');
 
-	document.body.appendChild(render.domElement);
+	document.body.appendChild(renderer.domElement);
 
-	const controls = new OrbitControls(camera, render.domElement);
+	const controls = new OrbitControls(camera, renderer.domElement);
 
-	update(render, scene, camera, controls, stats);
+	if (WebGL.isWebGLAvailable()) {
+		handleKeepPerspectiveCameraAspectRatioOnResize({ camera, scene, renderer });
+		update({ renderer, scene, camera, controls, stats, clock });
+	} else {
+		const warning = WebGL.getWebGLErrorMessage();
+		alert(warning.textContent);
+	}
 };
 
 init();
