@@ -14,7 +14,6 @@ import {
 	WebGL1Renderer
 } from 'three';
 import type { BoxGeometry, Mesh, PlaneGeometry } from 'three';
-// Vector3,
 
 class Scene1 {
 	camera: PerspectiveCamera;
@@ -46,6 +45,7 @@ class Scene1 {
 		);
 		this.renderer = new WebGL1Renderer({ antialias: true });
 		this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+		this.controls.enableZoom = false;
 
 		this.boxGeometry = getBox(
 			{ width: 1, height: 1, widthSegments: 1, heightSegments: 1 },
@@ -86,12 +86,7 @@ class Scene1 {
 		canvasHolder.appendChild(this.renderer.domElement);
 
 		this.handleKeepPerspectiveCameraAspectRatioOnResize();
-		// {
-		// 	camera: this.camera,
-		// 	scene: this.scene,
-		// 	renderer: this.renderer
-		// }
-		this.update(); // stats, clock
+		this.update();
 	}
 
 	update = () => {
@@ -110,15 +105,6 @@ class Scene1 {
 		requestAnimationFrame(this.update);
 	};
 
-	// 	{
-	// 	camera,
-	// 	scene,
-	// 	renderer
-	// }: {
-	// 	camera: PerspectiveCamera;
-	// 	scene: Scene;
-	// 	renderer: WebGL1Renderer;
-	// 	}
 	handleKeepPerspectiveCameraAspectRatioOnResize = () => {
 		const tanFOV = Math.tan(((Math.PI / 180) * this.camera.fov) / 2);
 
@@ -153,5 +139,3 @@ class Scene1 {
 
 const scene1 = new Scene1();
 scene1.init();
-
-// window.scene1 = scene1;
