@@ -20,7 +20,7 @@ import WebGL from 'three/examples/jsm/capabilities/WebGL';
 import {
 	getPlane,
 	handleKeepPerspectiveCameraAspectRatioOnResize
-} from '../../utils';
+} from '@utils/common/threejs';
 
 const update = (props: {
 	renderer: WebGL1Renderer;

@@ -16,7 +16,7 @@ import {
 	getBox,
 	getPlane,
 	handleKeepPerspectiveCameraAspectRatioOnResize
-} from '../../utils';
+} from '@utils/common/threejs';
 
 const update = (props: {
 	renderer: WebGL1Renderer;

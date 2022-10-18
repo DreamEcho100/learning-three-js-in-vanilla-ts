@@ -34,7 +34,7 @@ import {
 	getMaterial,
 	getSpotLight,
 	handleKeepPerspectiveCameraAspectRatioOnResize
-} from '../../../utils';
+} from '@utils/common/threejs';
 
 const GEO_TYPES = [
 	'box',

@@ -28,7 +28,7 @@ import {
 	getMaterial,
 	getSpotLight,
 	handleKeepPerspectiveCameraAspectRatioOnResize
-} from '../../../utils';
+} from '@utils/common/threejs';
 
 enum EGetMaterialBase {
 	basic = 'basic',

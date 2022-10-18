@@ -24,7 +24,7 @@ import {
 	getPlane,
 	getSpotLight,
 	handleKeepPerspectiveCameraAspectRatioOnResize
-} from '../../../utils';
+} from '@utils/common/threejs';
 
 const spotLightHandler = (light: SpotLight) => {
 	light.castShadow = true;

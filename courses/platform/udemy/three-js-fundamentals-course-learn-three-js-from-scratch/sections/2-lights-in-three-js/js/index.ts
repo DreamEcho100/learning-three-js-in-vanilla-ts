@@ -1,4 +1,15 @@
 import { gui } from '@utils/common/gui';
+import {
+	getAmbientLight,
+	getBox,
+	getDirectionalLight,
+	getMaterial,
+	getPlane,
+	getPointLight,
+	getSphere,
+	getSpotLight,
+	handleKeepPerspectiveCameraAspectRatioOnResize
+} from '@utils/common/threejs';
 
 import WebGL from 'three/examples/jsm/capabilities/WebGL';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -11,24 +22,11 @@ import {
 	Group,
 	Material,
 	Mesh,
-	MeshPhongMaterial,
 	PerspectiveCamera,
 	Scene,
 	Vector3,
 	WebGL1Renderer
 } from 'three';
-
-import {
-	getAmbientLight,
-	getBox,
-	getDirectionalLight,
-	getMaterial,
-	getPlane,
-	getPointLight,
-	getSphere,
-	getSpotLight,
-	handleKeepPerspectiveCameraAspectRatioOnResize
-} from '../../utils';
 
 // const getRectAreaLight = (color: ColorRepresentation, intensity: number) => {
 // 	const light = new RectAreaLight(color, intensity);

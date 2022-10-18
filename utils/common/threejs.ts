@@ -165,10 +165,10 @@ export const getSphere = (
 	return mesh;
 };
 
-export const getPlane = (
+export const getPlane = <T extends Material | Material[]>(
 	planeOptions: Partial<PlaneGeometry['parameters']>,
-	material: Material,
-	middleware?: (plane: Mesh<PlaneGeometry, Material>) => void // Mesh<PlaneGeometry, Material>
+	material: T,
+	middleware?: (plane: Mesh<PlaneGeometry, T>) => void // Mesh<PlaneGeometry, Material>
 ) => {
 	const geometry = new PlaneGeometry(
 		planeOptions.width,
@@ -183,14 +183,10 @@ export const getPlane = (
 	return mesh;
 };
 
-export const getBox = (
+export const getBox = <T extends Material | Material[]>(
 	planeOptions: Partial<PlaneGeometry['parameters']>,
-	material: Material,
-	materialMiddleware?: (material: Material) => Material
-	// x: number,
-	// y: number,
-	// z: number,
-	// color?: ColorRepresentation
+	material: T,
+	materialMiddleware?: (material: T) => T
 ) => {
 	const geometry = new BoxGeometry(
 		planeOptions.width,
@@ -201,7 +197,7 @@ export const getBox = (
 	const mesh = new Mesh(
 		geometry,
 		materialMiddleware ? materialMiddleware(material) : material
-	);
+	); //  as Mesh<BoxGeometry, T>;
 
 	return mesh;
 };

@@ -1,4 +1,15 @@
 import { gui } from '@utils/common/gui';
+import {
+	getAmbientLight,
+	getBox,
+	getDirectionalLight,
+	getPlane,
+	getPointLight,
+	getSphere,
+	getSpotLight,
+	handleKeepPerspectiveCameraAspectRatioOnResize,
+	getMaterial
+} from '@utils/common/threejs';
 
 import WebGL from 'three/examples/jsm/capabilities/WebGL';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -18,18 +29,6 @@ import {
 } from 'three';
 
 import noisejs from 'noisejs';
-
-import {
-	getAmbientLight,
-	getBox,
-	getDirectionalLight,
-	getPlane,
-	getPointLight,
-	getSphere,
-	getSpotLight,
-	handleKeepPerspectiveCameraAspectRatioOnResize
-} from '../../utils';
-import { getMaterial } from './../../utils/index';
 // import { noisejs } from 'noisejs';
 
 enum EAnimationsTypeBoxGrid {

@@ -27,7 +27,7 @@ import {
 	getSphere,
 	getSpotLight,
 	handleKeepPerspectiveCameraAspectRatioOnResize
-} from '../../utils';
+} from '@utils/common/threejs';
 
 const sphereArrows = {
 	up: false,

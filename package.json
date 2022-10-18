@@ -21,6 +21,8 @@
   },
   "dependencies": {
     "@tweakpane/plugin-essentials": "^0.1.5",
+    "dat.gui": "^0.7.9",
+    "gsap": "^3.11.3",
     "noisejs": "^2.1.0",
     "three": "^0.145.0",
     "tweakpane": "^3.1.0"
