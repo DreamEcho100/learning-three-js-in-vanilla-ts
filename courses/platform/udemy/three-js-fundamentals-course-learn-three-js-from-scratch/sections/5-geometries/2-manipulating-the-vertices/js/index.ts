@@ -1,6 +1,6 @@
 // import Noise from 'noisejs';
 // WebGL
-import { gui } from '@utils/common/gui';
+import { gui } from '@utils/common/tweakpaneGUI';
 
 import WebGL from 'three/examples/jsm/capabilities/WebGL';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -24,7 +24,7 @@ import {
 	getPlane,
 	getSpotLight,
 	handleKeepPerspectiveCameraAspectRatioOnResize
-} from '@utils/common/threejs';
+} from '@utils/common/three';
 
 const spotLightHandler = (light: SpotLight) => {
 	light.castShadow = true;

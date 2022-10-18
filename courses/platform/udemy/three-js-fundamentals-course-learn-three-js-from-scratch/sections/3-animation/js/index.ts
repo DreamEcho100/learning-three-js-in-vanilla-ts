@@ -1,4 +1,4 @@
-import { gui } from '@utils/common/gui';
+import { gui } from '@utils/common/tweakpaneGUI';
 import {
 	getAmbientLight,
 	getBox,
@@ -9,7 +9,7 @@ import {
 	getSpotLight,
 	handleKeepPerspectiveCameraAspectRatioOnResize,
 	getMaterial
-} from '@utils/common/threejs';
+} from '@utils/common/three';
 
 import WebGL from 'three/examples/jsm/capabilities/WebGL';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';

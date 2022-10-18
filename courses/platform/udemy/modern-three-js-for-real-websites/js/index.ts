@@ -1,18 +1,20 @@
 import {
 	getBox,
-	getPlane,
-	handleKeepPerspectiveCameraAspectRatioOnResize
-} from '@utils/common/threejs';
+	getPlane
+	// handleKeepPerspectiveCameraAspectRatioOnResize
+} from '@utils/common/three';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import WebGL from 'three/examples/jsm/capabilities/WebGL';
 import {
+	DoubleSide,
 	MeshBasicMaterial,
 	PerspectiveCamera,
 	Scene,
 	WebGL1Renderer
 } from 'three';
 import type { BoxGeometry, Mesh, PlaneGeometry } from 'three';
+// Vector3,
 
 class Scene1 {
 	camera: PerspectiveCamera;
@@ -22,6 +24,7 @@ class Scene1 {
 
 	boxGeometry: Mesh<BoxGeometry, MeshBasicMaterial>;
 	planeGeometry: Mesh<PlaneGeometry, MeshBasicMaterial>;
+	canvasHolder: Element; // HTMLDivElement;
 
 	constructor() {
 		if (!WebGL.isWebGLAvailable()) {
@@ -29,10 +32,15 @@ class Scene1 {
 			alert(warning.textContent);
 		}
 
+		const canvasHolder = document.querySelector('.canvasHolder');
+		if (!canvasHolder) throw new Error('Can not find canvasHolder');
+
+		this.canvasHolder = canvasHolder;
+
 		this.scene = new Scene();
 		this.camera = new PerspectiveCamera(
 			45,
-			window.innerWidth / window.innerHeight,
+			this.getContainerAspectRatio(),
 			0.1,
 			1000
 		);
@@ -45,32 +53,44 @@ class Scene1 {
 		);
 		this.planeGeometry = getPlane(
 			{ width: 5, height: 5, widthSegments: 10, heightSegments: 10 },
-			new MeshBasicMaterial({ color: 0xff0000 })
+			new MeshBasicMaterial({ color: 0xff0000, side: DoubleSide })
 		);
 	}
+
+	getContainerAspectRatio = () => {
+		return this.canvasHolder
+			? this.canvasHolder.clientWidth / this.canvasHolder.clientHeight
+			: window.innerWidth / window.innerHeight;
+	};
+
+	getContainerWidth = () => {
+		return this.canvasHolder.clientWidth || window.innerWidth;
+	};
+	getContainerHeight = () => {
+		return this.canvasHolder.clientHeight || window.innerHeight;
+	};
 
 	init() {
 		const canvasHolder = document.querySelector('.canvasHolder');
 		if (!canvasHolder) throw new Error('Can not find canvasHolder');
 
 		this.camera.position.set(0, 0, 10);
-		// camera.lookAt(new Vector3(0, 0, 0));
+		// this.camera.lookAt(new Vector3(0, 0, 0));
 
-		this.scene.add(this.planeGeometry); // this.boxGeometry,
+		this.scene.add(this.planeGeometry, this.boxGeometry); // this.boxGeometry,
 
-		this.renderer = new WebGL1Renderer({ antialias: true });
-		this.renderer.setSize(window.innerWidth, window.innerHeight);
 		this.renderer.setClearColor('rgb(0, 0, 0)');
-		this.renderer.setSize(innerWidth, innerHeight);
-		this.renderer.setPixelRatio(window.devicePixelRatio);
+		// this.renderer.setSize(this.getContainerWidth(), this.getContainerHeight());
+		// this.renderer.setPixelRatio(window.devicePixelRatio);
 
 		canvasHolder.appendChild(this.renderer.domElement);
 
-		handleKeepPerspectiveCameraAspectRatioOnResize({
-			camera: this.camera,
-			scene: this.scene,
-			renderer: this.renderer
-		});
+		this.handleKeepPerspectiveCameraAspectRatioOnResize();
+		// {
+		// 	camera: this.camera,
+		// 	scene: this.scene,
+		// 	renderer: this.renderer
+		// }
 		this.update(); // stats, clock
 	}
 
@@ -79,17 +99,59 @@ class Scene1 {
 
 		this.controls.update();
 		// this.stats.update();
-		// this.boxGeometry.rotation.x += 0.01;
-		// this.boxGeometry.rotation.y += 0.01;
-		// this.boxGeometry.rotation.z += 0.01;
+		this.boxGeometry.rotation.x += 0.01;
+		this.boxGeometry.rotation.y += 0.01;
+		this.boxGeometry.rotation.z += 0.01;
 
-		// this.planeGeometry.rotation.x -= 0.01;
-		// this.planeGeometry.rotation.y -= 0.01;
-		// this.planeGeometry.rotation.z -= 0.01;
+		this.planeGeometry.rotation.x -= 0.01;
+		this.planeGeometry.rotation.y -= 0.01;
+		this.planeGeometry.rotation.z -= 0.01;
 
 		requestAnimationFrame(this.update);
+	};
+
+	// 	{
+	// 	camera,
+	// 	scene,
+	// 	renderer
+	// }: {
+	// 	camera: PerspectiveCamera;
+	// 	scene: Scene;
+	// 	renderer: WebGL1Renderer;
+	// 	}
+	handleKeepPerspectiveCameraAspectRatioOnResize = () => {
+		const tanFOV = Math.tan(((Math.PI / 180) * this.camera.fov) / 2);
+
+		const onWindowResize = () => {
+			const containerWidth = this.getContainerWidth();
+			const containerHeight = this.getContainerHeight();
+			this.camera.aspect = this.getContainerAspectRatio();
+
+			// adjust the FOV
+			this.camera.fov =
+				(360 / Math.PI) *
+				Math.atan(tanFOV * (containerHeight / containerHeight));
+
+			this.camera.updateProjectionMatrix();
+			this.camera.lookAt(this.scene.position);
+
+			this.renderer.setSize(containerWidth, containerHeight);
+			this.renderer.render(this.scene, this.camera);
+			this.renderer.setPixelRatio(window.devicePixelRatio);
+		};
+
+		onWindowResize();
+
+		window.addEventListener('resize', onWindowResize, false);
+
+		return {
+			removeEventListener: () =>
+				window.removeEventListener('resize', onWindowResize, false)
+		};
 	};
 }
 
 const scene1 = new Scene1();
 scene1.init();
+
+// window.scene1 = scene1;

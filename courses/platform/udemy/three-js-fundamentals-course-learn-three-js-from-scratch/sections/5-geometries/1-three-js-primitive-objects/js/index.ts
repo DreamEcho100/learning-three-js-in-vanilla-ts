@@ -1,6 +1,6 @@
 // import Noise from 'noisejs';
 
-import { gui } from '@utils/common/gui';
+import { gui } from '@utils/common/tweakpaneGUI';
 
 import WebGL from 'three/examples/jsm/capabilities/WebGL';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -34,7 +34,7 @@ import {
 	getMaterial,
 	getSpotLight,
 	handleKeepPerspectiveCameraAspectRatioOnResize
-} from '@utils/common/threejs';
+} from '@utils/common/three';
 
 const GEO_TYPES = [
 	'box',

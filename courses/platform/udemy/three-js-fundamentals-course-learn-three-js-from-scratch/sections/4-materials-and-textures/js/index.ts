@@ -1,4 +1,4 @@
-import { gui } from '@utils/common/gui';
+import { gui } from '@utils/common/tweakpaneGUI';
 
 import WebGL from 'three/examples/jsm/capabilities/WebGL';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -27,7 +27,7 @@ import {
 	getSphere,
 	getSpotLight,
 	handleKeepPerspectiveCameraAspectRatioOnResize
-} from '@utils/common/threejs';
+} from '@utils/common/three';
 
 const sphereArrows = {
 	up: false,

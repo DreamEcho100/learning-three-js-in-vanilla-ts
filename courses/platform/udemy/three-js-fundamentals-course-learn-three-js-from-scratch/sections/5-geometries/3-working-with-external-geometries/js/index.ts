@@ -1,6 +1,6 @@
 // import Noise from 'noisejs';
 
-import { gui } from '@utils/common/gui';
+import { gui } from '@utils/common/tweakpaneGUI';
 
 import WebGL from 'three/examples/jsm/capabilities/WebGL';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
@@ -28,7 +28,7 @@ import {
 	getMaterial,
 	getSpotLight,
 	handleKeepPerspectiveCameraAspectRatioOnResize
-} from '@utils/common/threejs';
+} from '@utils/common/three';
 
 enum EGetMaterialBase {
 	basic = 'basic',
