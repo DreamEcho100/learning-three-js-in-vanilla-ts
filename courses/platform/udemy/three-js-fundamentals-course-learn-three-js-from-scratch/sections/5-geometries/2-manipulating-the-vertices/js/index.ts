@@ -98,8 +98,8 @@ const update = (props: {
 			i,
 			positionAttribute.getZ(i) + Math.sin(timeElapsed + i + 0.01) * 0.005
 		);
-		plane.geometry.attributes.position.needsUpdate = true;
 	}
+	plane.geometry.attributes.position.needsUpdate = true;
 
 	// sceneCameraGroup.rotateY(Math.PI * 0.001);
 

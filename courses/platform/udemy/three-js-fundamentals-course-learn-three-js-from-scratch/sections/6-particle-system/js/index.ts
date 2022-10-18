@@ -32,6 +32,35 @@ const update = (props: {
 	props.controls.update();
 	props.stats.update();
 
+	// const timeElapsed = props.clock.getElapsedTime();
+	const particleSystem = props.scene.getObjectByName(
+		'particleSystem'
+	) as unknown as Points<BufferGeometry, PointsMaterial>;
+	const positionAttribute = particleSystem.geometry.getAttribute('position');
+	// particleSystem.rotation.x += Math.PI * 0.001;
+	let i = 0;
+	let particlePosX: number;
+	let particlePosY: number;
+	// let particlePosZ: number;
+	for (; i < positionAttribute.count; i++) {
+		// positionAttribute.setZ(
+		// 	i,
+		// 	positionAttribute.getZ(i) + Math.sin(timeElapsed + i + 0.01) * 0.005
+		// );
+		particlePosX = positionAttribute.getX(i);
+		particlePosY = positionAttribute.getY(i);
+		// particlePosZ = positionAttribute.getZ(i);
+		positionAttribute.setXY(
+			i,
+			particlePosX < -10 ? 10 : particlePosX + (Math.random() - 1) * 0.1,
+			particlePosY < -10
+				? 10
+				: positionAttribute.getY(i) + (Math.random() - 0.75) * 0.1
+			// particlePosZ > 0 ? -10 : positionAttribute.getZ(i) + Math.random() * 0.1
+		);
+	}
+	particleSystem.geometry.attributes.position.needsUpdate = true;
+
 	requestAnimationFrame(() => {
 		update(props);
 	});
@@ -46,7 +75,7 @@ const init = () => {
 		1,
 		1000
 	);
-	camera.position.set(0, 0, 40);
+	camera.position.set(0, 0, 10);
 	camera.lookAt(new Vector3(0, 0, 0));
 
 	// The director
@@ -61,7 +90,9 @@ const init = () => {
 		(plane) => {
 			plane.name = 'plane-1';
 			plane.rotation.x = Math.PI * 0.6;
-			plane.rotation.y = Math.PI * 0;
+			// plane.rotation.y = Math.PI * 0;
+			// plane.translateX(-2);
+			plane.position.x -= 2;
 			plane.rotation.z = Math.PI * -0.1;
 		}
 	);
@@ -99,6 +130,7 @@ const init = () => {
 	);
 
 	const particleSystem = new Points(particleGeo, particleMaterial);
+	particleSystem.name = 'particleSystem';
 
 	scene.add(particleSystem);
 	scene.add(plane);
