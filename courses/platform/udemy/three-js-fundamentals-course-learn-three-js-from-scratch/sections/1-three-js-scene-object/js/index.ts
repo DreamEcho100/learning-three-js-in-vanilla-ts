@@ -1,3 +1,9 @@
+import {
+	getBox,
+	getPlane,
+	handleKeepPerspectiveCameraAspectRatioOnResize
+} from '@utils/common/three';
+
 import WebGL from 'three/examples/jsm/capabilities/WebGL';
 import {
 	Clock,
@@ -11,12 +17,6 @@ import {
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module';
-
-import {
-	getBox,
-	getPlane,
-	handleKeepPerspectiveCameraAspectRatioOnResize
-} from '@utils/common/three';
 
 const update = (props: {
 	renderer: WebGL1Renderer;
@@ -87,6 +87,7 @@ const init = () => {
 
 	const clock = new Clock();
 	const stats = Stats();
+	document.body.appendChild(stats.dom);
 	const controls = new OrbitControls(camera, renderer.domElement);
 
 	if (WebGL.isWebGLAvailable()) {

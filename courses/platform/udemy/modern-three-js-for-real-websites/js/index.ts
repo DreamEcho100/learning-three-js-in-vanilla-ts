@@ -1,29 +1,32 @@
-import {
-	getBox,
-	getPlane
-	// handleKeepPerspectiveCameraAspectRatioOnResize
-} from '@utils/common/three';
+import { getDirectionalLight, getPlane } from '@utils/common/three';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import WebGL from 'three/examples/jsm/capabilities/WebGL';
 import {
 	DoubleSide,
-	MeshBasicMaterial,
+	MeshPhongMaterial,
 	PerspectiveCamera,
 	Scene,
 	WebGL1Renderer
 } from 'three';
-import type { BoxGeometry, Mesh, PlaneGeometry } from 'three';
+import type { DirectionalLight, Mesh, PlaneGeometry } from 'three';
+import Stats from 'three/examples/jsm/libs/stats.module';
 
 class Scene1 {
-	camera: PerspectiveCamera;
-	controls: OrbitControls;
-	renderer: WebGL1Renderer;
-	scene: Scene;
-
-	boxGeometry: Mesh<BoxGeometry, MeshBasicMaterial>;
-	planeGeometry: Mesh<PlaneGeometry, MeshBasicMaterial>;
+	arrForOnDispose: [(() => void)[], (() => void)[], (() => void)[]];
 	canvasHolder: Element; // HTMLDivElement;
+	requestAnimationFrameId?: number;
+
+	camera!: PerspectiveCamera;
+	controls!: OrbitControls;
+	renderer!: WebGL1Renderer;
+	scene!: Scene;
+	stats: Stats | undefined;
+
+	// boxGeometry: Mesh<BoxGeometry, MeshPhongMaterial>;
+	directionalLight!: DirectionalLight;
+	planeGeometry!: Mesh<PlaneGeometry, MeshPhongMaterial>;
+	areElementsInit: boolean;
 
 	constructor() {
 		if (!WebGL.isWebGLAvailable()) {
@@ -34,7 +37,58 @@ class Scene1 {
 		const canvasHolder = document.querySelector('.canvasHolder');
 		if (!canvasHolder) throw new Error('Can not find canvasHolder');
 
+		this.arrForOnDispose = [
+			[],
+			[],
+			[
+				() => {
+					this.requestAnimationFrameId &&
+						cancelAnimationFrame(this.requestAnimationFrameId);
+					this.stats?.end();
+					this.disposeNode(this.scene, true);
+					this.areElementsInit = false;
+					this.renderer.dispose();
+					if (this.renderer.domElement.parentElement)
+						this.renderer.domElement.parentElement.removeChild(
+							this.renderer.domElement
+						);
+					if (this.stats?.domElement.parentElement)
+						this.stats.domElement.parentElement.removeChild(
+							this.stats.domElement
+						);
+
+					const keys = [
+						'scene',
+						'camera',
+						'renderer',
+						'controls',
+						'directionalLight',
+						'planeGeometry',
+						'stats'
+					];
+
+					for (const key in keys) {
+						delete this[key as keyof this];
+					}
+				},
+				() => {},
+				() => {},
+				() => {},
+				() => {}
+			]
+		];
 		this.canvasHolder = canvasHolder;
+		this.requestAnimationFrameId;
+
+		// this.initElements();
+		this.areElementsInit = false;
+	}
+
+	initElements = () => {
+		if (this.areElementsInit) return;
+
+		const canvasHolder = document.querySelector('.canvasHolder');
+		if (!canvasHolder) throw new Error('Can not find canvasHolder');
 
 		this.scene = new Scene();
 		this.camera = new PerspectiveCamera(
@@ -44,18 +98,66 @@ class Scene1 {
 			1000
 		);
 		this.renderer = new WebGL1Renderer({ antialias: true });
-		this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-		this.controls.enableZoom = false;
+		canvasHolder.appendChild(this.renderer.domElement);
 
-		this.boxGeometry = getBox(
-			{ width: 1, height: 1, widthSegments: 1, heightSegments: 1 },
-			new MeshBasicMaterial({ color: 0x00ff00 })
-		);
+		this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+
+		// this.boxGeometry = getBox(
+		// 	{ width: 1, height: 1, widthSegments: 1, heightSegments: 1 },
+		// 	new MeshPhongMaterial({ color: 0x00ff00 })
+		// );
+		this.directionalLight = getDirectionalLight({
+			color: 0xffffff,
+			intensity: 1
+		});
 		this.planeGeometry = getPlane(
 			{ width: 5, height: 5, widthSegments: 10, heightSegments: 10 },
-			new MeshBasicMaterial({ color: 0xff0000, side: DoubleSide })
+			new MeshPhongMaterial({ color: 0xff0000, side: DoubleSide })
 		);
-	}
+		this.stats = Stats();
+		if (process.env.NODE_ENV === 'development') {
+			document.body.appendChild(this.stats.dom);
+		}
+		this.areElementsInit = true;
+	};
+
+	// https://stackoverflow.com/a/71755035/13961420
+	disposeNode = (node: any, recursive = false) => {
+		if (!node) return;
+
+		console.log('node', node);
+
+		if (recursive && node.children)
+			for (const child of node.children) this.disposeNode(child, recursive);
+
+		node.geometry && node.geometry.dispose();
+
+		if (!node.material) return;
+
+		const materials =
+			node.material.length === undefined ? [node.material] : node.material;
+
+		for (const material of materials) {
+			for (const key in material) {
+				const value = material[key];
+
+				if (value && typeof value === 'object' && 'minFilter' in value)
+					value.dispose();
+			}
+
+			material && material.dispose();
+		}
+	};
+
+	dispose = () => {
+		for (let i = 0; i < this.arrForOnDispose.length; i++) {
+			const arr = this.arrForOnDispose[i];
+			for (let j = 0; j < arr.length; j++) {
+				const func = arr[j];
+				func();
+			}
+		}
+	};
 
 	getContainerAspectRatio = () => {
 		return this.canvasHolder
@@ -71,19 +173,21 @@ class Scene1 {
 	};
 
 	init() {
-		const canvasHolder = document.querySelector('.canvasHolder');
-		if (!canvasHolder) throw new Error('Can not find canvasHolder');
+		if (!this.areElementsInit) this.initElements();
+
+		// this.arrForOnDispose[0].push(this.camera)
 
 		this.camera.position.set(0, 0, 10);
+		this.controls.enableZoom = false;
 		// this.camera.lookAt(new Vector3(0, 0, 0));
 
-		this.scene.add(this.planeGeometry, this.boxGeometry); // this.boxGeometry,
+		this.directionalLight.position.set(0, 0, 5);
+
+		this.scene.add(this.planeGeometry, this.directionalLight); // this.boxGeometry,
 
 		this.renderer.setClearColor('rgb(0, 0, 0)');
 		// this.renderer.setSize(this.getContainerWidth(), this.getContainerHeight());
 		// this.renderer.setPixelRatio(window.devicePixelRatio);
-
-		canvasHolder.appendChild(this.renderer.domElement);
 
 		this.handleKeepPerspectiveCameraAspectRatioOnResize();
 		this.update();
@@ -93,16 +197,19 @@ class Scene1 {
 		this.renderer.render(this.scene, this.camera);
 
 		this.controls.update();
-		// this.stats.update();
-		this.boxGeometry.rotation.x += 0.01;
-		this.boxGeometry.rotation.y += 0.01;
-		this.boxGeometry.rotation.z += 0.01;
+		if (process.env.NODE_ENV === 'development') {
+			this.stats!.update();
+		}
 
-		this.planeGeometry.rotation.x -= 0.01;
-		this.planeGeometry.rotation.y -= 0.01;
-		this.planeGeometry.rotation.z -= 0.01;
+		// this.boxGeometry.rotation.x += 0.01;
+		// this.boxGeometry.rotation.y += 0.01;
+		// this.boxGeometry.rotation.z += 0.01;
 
-		requestAnimationFrame(this.update);
+		// this.planeGeometry.rotation.x -= 0.01;
+		// this.planeGeometry.rotation.y -= 0.01;
+		// this.planeGeometry.rotation.z -= 0.01;
+
+		this.requestAnimationFrameId = requestAnimationFrame(this.update);
 	};
 
 	handleKeepPerspectiveCameraAspectRatioOnResize = () => {
@@ -130,12 +237,78 @@ class Scene1 {
 
 		window.addEventListener('resize', onWindowResize, false);
 
+		const removeEventListenerIndex = this.arrForOnDispose[0].push(() => {
+			window.removeEventListener('resize', onWindowResize, false);
+		});
+
 		return {
-			removeEventListener: () =>
-				window.removeEventListener('resize', onWindowResize, false)
+			removeEventListener: this.arrForOnDispose[removeEventListenerIndex]
 		};
 	};
 }
 
 const scene1 = new Scene1();
 scene1.init();
+
+const disposeMainSceneButton = document.getElementById(
+	'disposeMainScene'
+) as HTMLButtonElement;
+const initMainSceneButton = document.getElementById(
+	'initMainScene'
+) as HTMLButtonElement;
+
+if (!disposeMainSceneButton)
+	throw new Error(
+		"disposeMainSceneButton doesn't exist, disposeMainSceneButton = ${disposeMainSceneButton}"
+	);
+if (!initMainSceneButton)
+	throw new Error(
+		"initMainSceneButton doesn't exist, initMainSceneButton = ${initMainSceneButton}"
+	);
+
+disposeMainSceneButton?.addEventListener('click', () => scene1.dispose());
+initMainSceneButton?.addEventListener('click', () => scene1.init());
+
+// if (process.env.NODE_ENV === 'development') {
+// 	setTimeout(() => {
+// 		const stats = Stats();
+// 		document.body.appendChild(stats.dom);
+// 		stats.update();
+// 	}, 0);
+// }
+
+// window.scene1 = scene1;
+
+/*
+// https://discourse.threejs.org/t/when-to-dispose-how-to-completely-clean-up-a-three-js-scene/1549/18
+console.log('dispose renderer!')
+renderer.dispose()
+
+scene.traverse(object => {
+	if (!object.isMesh) return
+	
+	console.log('dispose geometry!')
+	object.geometry.dispose()
+
+	if (object.material.isMaterial) {
+		cleanMaterial(object.material)
+	} else {
+		// an array of materials
+		for (const material of object.material) cleanMaterial(material)
+	}
+})
+
+const cleanMaterial = material => {
+	console.log('dispose material!')
+	material.dispose()
+
+	// dispose textures
+	for (const key of Object.keys(material)) {
+		const value = material[key]
+		if (value && typeof value === 'object' && 'minFilter' in value) {
+			console.log('dispose texture!')
+			value.dispose()
+		}
+	}
+}
+*/

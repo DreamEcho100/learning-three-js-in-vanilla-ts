@@ -11,6 +11,11 @@
 				width: 100%;
 				height: 100vh;
 				max-height: 50rem;
+				position: relative;
+			}
+			.canvasHolder canvas {
+				width: 100%;
+				height: 100%;
 			}
 		</style>
 		<script src="./js/index.ts" defer type="module"></script>
@@ -18,6 +23,9 @@
 	<body>
 		<!-- <canvas id="webgl"></canvas> -->
 		<div class="canvasHolder"></div>
-		<div style="height: 100vh; background-color: pink"></div>
+		<div style="height: 100vh; background-color: pink">
+			<button id="disposeMainScene">Dispose Main Scene</button>
+			<button id="initMainScene">Init Main Scene</button>
+		</div>
 	</body>
 </html>
