@@ -10,6 +10,7 @@
   },
   "devDependencies": {
     "@tweakpane/core": "^1.1.0",
+    "@types/dat.gui": "^0.7.7",
     "@types/glob": "^8.0.0",
     "@types/node": "^18.11.0",
     "@types/noisejs": "^0.0.28",
