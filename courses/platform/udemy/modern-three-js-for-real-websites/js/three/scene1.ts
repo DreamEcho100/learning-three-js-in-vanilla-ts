@@ -16,6 +16,8 @@ import Stats from 'three/examples/jsm/libs/stats.module';
 
 import { GUI } from 'dat.gui';
 
+import gsap from 'gsap';
+
 // https://gist.github.com/souporserious/b44ea5d04c38c2e7ff32cd1912a17cd0
 // https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver
 // https://github.com/juggle/resize-observer
@@ -459,6 +461,46 @@ class Scene1 {
 
 				rayCasterIntersectMainPlane[0].object.geometry.attributes.color.needsUpdate =
 					true;
+
+				const initialColor = {
+					r: 0,
+					g: 0.19,
+					b: 0.4
+				};
+				const hoverColor = {
+					r: 0.1,
+					g: 0.5,
+					b: 1
+				};
+
+				gsap.to(hoverColor, {
+					r: initialColor.r,
+					g: initialColor.g,
+					b: initialColor.b,
+					duration: 1,
+					onUpdate: () => {
+						if (!color) return;
+						// vertex 1
+						color.setX(rayCasterIntersectMainPlane[0].face.a, hoverColor.r);
+						color.setY(rayCasterIntersectMainPlane[0].face.a, hoverColor.g);
+						color.setZ(rayCasterIntersectMainPlane[0].face.a, hoverColor.b);
+
+						// vertex 2
+						color.setX(rayCasterIntersectMainPlane[0].face.b, hoverColor.r);
+						color.setY(rayCasterIntersectMainPlane[0].face.b, hoverColor.g);
+						color.setZ(rayCasterIntersectMainPlane[0].face.b, hoverColor.b);
+
+						// vertex 3
+						color.setX(rayCasterIntersectMainPlane[0].face.c, hoverColor.r);
+						color.setY(rayCasterIntersectMainPlane[0].face.c, hoverColor.g);
+						color.setZ(rayCasterIntersectMainPlane[0].face.c, hoverColor.b);
+
+						color.needsUpdate = true;
+
+						// rayCasterIntersectMainPlane[0].object.geometry.attributes.color.needsUpdate =
+						// 	true;
+					}
+				});
 			}
 		}
 
