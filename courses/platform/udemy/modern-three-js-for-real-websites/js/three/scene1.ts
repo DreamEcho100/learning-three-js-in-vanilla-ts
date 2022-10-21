@@ -38,10 +38,14 @@ import gsap from 'gsap';
 
 const initWorldState = () => ({
 	mainPlane: {
-		width: 25,
-		height: 25,
-		widthSegments: 30,
-		heightSegments: 30
+		// width: 25,
+		// height: 25,
+		// widthSegments: 30,
+		// heightSegments: 30
+		width: 400,
+		height: 400,
+		widthSegments: 50,
+		heightSegments: 50
 	}
 });
 
@@ -79,6 +83,11 @@ class Scene1 {
 	directionalFrontLight!: DirectionalLight;
 	directionalBackLight!: DirectionalLight;
 	mainPlaneGeometry!: Mesh<PlaneGeometry, MeshPhongMaterial>;
+	mainPlaneGeometryProps: {
+		randomValues: number[];
+		originalPosition: number[];
+	};
+	frame: number;
 
 	constructor() {
 		if (!WebGL.isWebGLAvailable()) {
@@ -146,9 +155,14 @@ class Scene1 {
 			]
 		];
 		this.canvasHolder = canvasHolder;
+		this.mainPlaneGeometryProps = {
+			randomValues: [],
+			originalPosition: []
+		};
 
 		this.requestAnimationFrameId;
 		this.rayCaster = new Raycaster();
+		this.frame = 0;
 
 		this.areElementsInit = false;
 	}
@@ -179,29 +193,32 @@ class Scene1 {
 
 		const planeCoordinates = this.mainPlaneGeometry.geometry.attributes.position
 			.array as number[];
+		const randomValues = [];
+		const colors = [];
 		let i = 0;
 		for (; i < planeCoordinates.length; i += 3) {
-			planeCoordinates[i + 1] += Math.random() * 0.5;
-			planeCoordinates[i + 2] += Math.random() * 1.5;
-		}
+			planeCoordinates[i] += (Math.random() - 0.5) * 3;
+			planeCoordinates[i + 1] += (Math.random() - 0.5) * 3;
+			planeCoordinates[i + 2] += (Math.random() - 0.5) * 3;
 
-		(this.mainPlaneGeometry.geometry.attributes.position as any).randomValues =
-			planeCoordinates;
-		(
-			this.mainPlaneGeometry.geometry.attributes.position as any
-		).originalPosition =
-			this.mainPlaneGeometry.geometry.attributes.position.array;
+			colors.push(0.19, 0, 0.4);
 
-		const colors = [];
-		i = 0;
-		for (; i < this.mainPlaneGeometry.geometry.attributes.position.count; i++) {
-			colors.push(0, 0.19, 0.4);
+			randomValues.push(
+				Math.random() * Math.PI * 2,
+				Math.random() * Math.PI * 2,
+				Math.random() * Math.PI * 2
+			);
 		}
 
 		this.mainPlaneGeometry.geometry.setAttribute(
 			'color',
 			new BufferAttribute(new Float32Array(colors), 3)
 		);
+
+		this.mainPlaneGeometryProps.randomValues = randomValues;
+		this.mainPlaneGeometryProps.originalPosition = [
+			...(this.mainPlaneGeometry.geometry.attributes.position.array as number[])
+		];
 
 		this.scene.add(this.mainPlaneGeometry);
 	};
@@ -290,6 +307,8 @@ class Scene1 {
 		this.containerIntersectionObserver = new IntersectionObserver(
 			this.handleContainerIntersectionObserver
 		);
+		this.frame = 0;
+
 		this.containerIntersectionObserver.observe(this.canvasHolder);
 
 		this.containerProps = {
@@ -316,7 +335,7 @@ class Scene1 {
 			0.1,
 			1000
 		);
-		this.camera.position.set(0, 0, 10);
+		this.camera.position.set(0, 0, 150);
 		// this.camera.lookAt(new Vector3(0, 0, 0));
 
 		this.renderer = new WebGL1Renderer({ antialias: true });
@@ -329,12 +348,12 @@ class Scene1 {
 			color: 0xffffff,
 			intensity: 1
 		});
-		this.directionalFrontLight.position.set(0, 0, 15);
+		this.directionalFrontLight.position.set(0, -1, 1);
 		this.directionalBackLight = getDirectionalLight({
 			color: 0xffffff,
 			intensity: 1
 		});
-		this.directionalBackLight.position.set(0, 0, -15);
+		this.directionalBackLight.position.set(0, 1, -1);
 
 		if (process.env.NODE_ENV === 'development') {
 			this.stats = Stats();
@@ -345,16 +364,23 @@ class Scene1 {
 		this.initCreatingMainPlane();
 		this.datDotGui = new GUI();
 
-		const mainPlaneKeys = Object.keys(this.worldState.mainPlane);
-		let i = 0;
-		for (; i < mainPlaneKeys.length; i++) {
+		['width', 'height'].map((item) =>
 			this.datDotGui
-				.add(this.worldState.mainPlane, mainPlaneKeys[i], 1, 100)
+				.add(this.worldState.mainPlane, item, 1, 500)
 				.onChange(() => {
 					this.disposeMainPlane();
 					this.initCreatingMainPlane();
-				});
-		}
+				})
+		);
+
+		['widthSegments', 'heightSegments'].map((item) =>
+			this.datDotGui
+				.add(this.worldState.mainPlane, item, 1, 100)
+				.onChange(() => {
+					this.disposeMainPlane();
+					this.initCreatingMainPlane();
+				})
+		);
 
 		// this.mainPlaneGeometry =
 		this.initCreatingMainPlane();
@@ -431,6 +457,26 @@ class Scene1 {
 			this.stats!.update();
 		}
 
+		this.frame += 0.01;
+
+		const mainPlaneGeometryPositionArr = this.mainPlaneGeometry.geometry
+			.attributes.position.array as number[];
+		let i = 0;
+		for (; i < mainPlaneGeometryPositionArr.length; i += 3) {
+			// x
+			mainPlaneGeometryPositionArr[i] =
+				this.mainPlaneGeometryProps.originalPosition[i] +
+				Math.cos(this.frame + this.mainPlaneGeometryProps.randomValues[i]) * 1;
+
+			// y
+			mainPlaneGeometryPositionArr[i + 1] =
+				this.mainPlaneGeometryProps.originalPosition[i + 1] +
+				Math.sin(this.frame + this.mainPlaneGeometryProps.randomValues[i + 1]) *
+					1;
+		}
+
+		this.mainPlaneGeometry.geometry.attributes.position.needsUpdate = true;
+
 		if (this.containerProps.mouseCoors.x && this.containerProps.mouseCoors.y) {
 			this.rayCaster.setFromCamera(
 				this.containerProps.mouseCoors as { x: number; y: number },
@@ -440,7 +486,7 @@ class Scene1 {
 				this.mainPlaneGeometry
 			) as any[];
 
-			if (rayCasterIntersectMainPlane[0]) {
+			if (rayCasterIntersectMainPlane.length > 0) {
 				const { color } =
 					rayCasterIntersectMainPlane[0].object.geometry.attributes;
 
@@ -463,13 +509,13 @@ class Scene1 {
 					true;
 
 				const initialColor = {
-					r: 0,
-					g: 0.19,
+					r: 0.19,
+					g: 0,
 					b: 0.4
 				};
 				const hoverColor = {
-					r: 0.1,
-					g: 0.5,
+					r: 0.5,
+					g: 0.1,
 					b: 1
 				};
 
