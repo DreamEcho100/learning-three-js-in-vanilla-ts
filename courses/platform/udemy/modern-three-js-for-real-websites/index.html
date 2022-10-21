@@ -5,8 +5,24 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<link rel="stylesheet" href="/global.css" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@1,700&family=Space+Mono&display=swap"
+			rel="stylesheet"
+		/>
 		<title>Modern Three.js for Real Websites1</title>
 		<style>
+			body {
+				-webkit-font-smoothing: antialiased;
+			}
+
+			.font-exo {
+				font-family: 'Exo 2', sans-serif;
+			}
+
+			.font-space-mono {
+				font-family: 'Space Mono', monospace;
+			}
 			.canvasHolder {
 				width: 100%;
 				height: 75vh;
@@ -14,15 +30,54 @@
 				position: relative;
 			}
 			.canvasHolder canvas {
+				position: absolute;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				left: 0;
 				width: 100%;
 				height: 100%;
+				/* z-index: -1; */
 			}
 		</style>
+		<!-- <link
+			href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css"
+			rel="stylesheet"
+		/> -->
+		<!-- https://tailwindcss.com/docs/installation/play-cdn -->
+		<script src="https://cdn.tailwindcss.com"></script>
 		<script src="./js/index.ts" defer type="module"></script>
 	</head>
-	<body>
-		<!-- <canvas id="webgl"></canvas> -->
-		<div class="canvasHolder"></div>
+	<body class="mx-auto">
+		<div class="canvasHolder flex items-center justify-center">
+			<div
+				id="text-container"
+				class="text-white text-center relative z-10 w-fit h-fit p-4"
+			>
+				<h1
+					id="authorName"
+					class="opacity-0 font-space-mono text-sm uppercase tracking-wide"
+					style="transform: translateY(30px)"
+				>
+					Mazen Mohamed
+				</h1>
+				<p
+					id="oneWithAn"
+					class="opacity-0 font-exo text-4xl"
+					style="transform: translateY(30px)"
+				>
+					ONE WITH AN EVERLASTING DESIRE FOR THE UNKNOWN & UNTOLD
+				</p>
+				<a
+					id="viewWorkBtn"
+					href="https://chriscourses.com/"
+					class="opacity-0 border px-4 py-2 rounded-lg text-sm font-space-mono uppercase mt-8 hover:bg-white hover:text-gray-800 inline-block"
+					style="transform: translateY(30px)"
+				>
+					View Work
+				</a>
+			</div>
+		</div>
 		<div style="height: 100vh; background-color: pink">
 			<button id="disposeMainScene">Dispose Main Scene</button>
 			<button id="initMainScene">Init Main Scene</button>

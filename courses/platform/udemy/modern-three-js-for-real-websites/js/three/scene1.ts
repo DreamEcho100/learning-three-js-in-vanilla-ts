@@ -9,6 +9,7 @@ import {
 	PerspectiveCamera,
 	Raycaster,
 	Scene,
+	Vector3,
 	WebGL1Renderer
 } from 'three';
 import type { DirectionalLight, Mesh, PlaneGeometry } from 'three';
@@ -67,19 +68,19 @@ interface IContainerProps {
 class Scene1 {
 	arrForOnDispose: [(() => void)[], (() => void)[], (() => void)[]];
 	canvasHolder: HTMLDivElement; // HTMLDivElement;
-	requestAnimationFrameId?: number;
+	camera: PerspectiveCamera;
 	stats: Stats | undefined;
 	areElementsInit: boolean;
 	rayCaster: Raycaster;
+	renderer!: WebGL1Renderer;
+	requestAnimationFrameId?: number;
+	scene: Scene;
 
 	containerProps!: IContainerProps;
 	containerIntersectionObserver!: IntersectionObserver;
 	worldState!: ReturnType<typeof initWorldState>;
-	camera!: PerspectiveCamera;
 	controls!: OrbitControls;
 	datDotGui!: GUI;
-	renderer!: WebGL1Renderer;
-	scene!: Scene;
 	directionalFrontLight!: DirectionalLight;
 	directionalBackLight!: DirectionalLight;
 	mainPlaneGeometry!: Mesh<PlaneGeometry, MeshPhongMaterial>;
@@ -110,6 +111,7 @@ class Scene1 {
 
 					this.requestAnimationFrameId &&
 						cancelAnimationFrame(this.requestAnimationFrameId);
+					this.disposeMainPlane();
 					this.disposeNode(this.scene, true);
 					this.areElementsInit = false;
 					this.renderer.dispose();
@@ -134,10 +136,11 @@ class Scene1 {
 						this.handleContainerMouseLeave
 					);
 
+					this.mainPlaneGeometryProps.randomValues = [];
+					this.mainPlaneGeometryProps.originalPosition = [];
+
 					const keys = [
 						'worldState',
-						'scene',
-						'camera',
 						'containerIntersectionObserver',
 						'renderer',
 						'controls',
@@ -155,13 +158,21 @@ class Scene1 {
 			]
 		];
 		this.canvasHolder = canvasHolder;
+		this.camera = new PerspectiveCamera(
+			45,
+			this.getContainerAspectRatio(),
+			0.1,
+			1000
+		);
 		this.mainPlaneGeometryProps = {
 			randomValues: [],
 			originalPosition: []
 		};
 
-		this.requestAnimationFrameId;
 		this.rayCaster = new Raycaster();
+		this.renderer = new WebGL1Renderer({ antialias: true });
+		this.requestAnimationFrameId;
+		this.scene = new Scene();
 		this.frame = 0;
 
 		this.areElementsInit = false;
@@ -290,8 +301,6 @@ class Scene1 {
 	init() {
 		if (!this.areElementsInit) this.initElements();
 
-		this.scene.add(this.directionalFrontLight, this.directionalBackLight);
-
 		this.renderer.setClearColor('rgb(0, 0, 0)');
 
 		this.handleKeepPerspectiveCameraAspectRatioOnResize();
@@ -327,18 +336,9 @@ class Scene1 {
 			this.handleContainerMouseLeave
 		);
 
-		this.scene = new Scene();
-
-		this.camera = new PerspectiveCamera(
-			45,
-			this.getContainerAspectRatio(),
-			0.1,
-			1000
-		);
 		this.camera.position.set(0, 0, 150);
-		// this.camera.lookAt(new Vector3(0, 0, 0));
+		this.camera.lookAt(new Vector3(0, 0, 0));
 
-		this.renderer = new WebGL1Renderer({ antialias: true });
 		this.canvasHolder.appendChild(this.renderer.domElement);
 
 		this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -354,6 +354,7 @@ class Scene1 {
 			intensity: 1
 		});
 		this.directionalBackLight.position.set(0, 1, -1);
+		this.scene.add(this.directionalFrontLight, this.directionalBackLight);
 
 		if (process.env.NODE_ENV === 'development') {
 			this.stats = Stats();
@@ -361,6 +362,7 @@ class Scene1 {
 		}
 
 		this.worldState = initWorldState();
+		this.disposeMainPlane();
 		this.initCreatingMainPlane();
 		this.datDotGui = new GUI();
 
@@ -381,9 +383,6 @@ class Scene1 {
 					this.initCreatingMainPlane();
 				})
 		);
-
-		// this.mainPlaneGeometry =
-		this.initCreatingMainPlane();
 
 		this.areElementsInit = true;
 	};
@@ -452,7 +451,7 @@ class Scene1 {
 	update = () => {
 		this.renderer.render(this.scene, this.camera);
 
-		this.controls.update();
+		// if (this.controls.enabled) this.controls.update();
 		if (process.env.NODE_ENV === 'development') {
 			this.stats!.update();
 		}
@@ -466,13 +465,14 @@ class Scene1 {
 			// x
 			mainPlaneGeometryPositionArr[i] =
 				this.mainPlaneGeometryProps.originalPosition[i] +
-				Math.cos(this.frame + this.mainPlaneGeometryProps.randomValues[i]) * 1;
+				Math.cos(this.frame + this.mainPlaneGeometryProps.randomValues[i]) *
+					0.75;
 
 			// y
 			mainPlaneGeometryPositionArr[i + 1] =
 				this.mainPlaneGeometryProps.originalPosition[i + 1] +
 				Math.sin(this.frame + this.mainPlaneGeometryProps.randomValues[i + 1]) *
-					1;
+					0.75;
 		}
 
 		this.mainPlaneGeometry.geometry.attributes.position.needsUpdate = true;

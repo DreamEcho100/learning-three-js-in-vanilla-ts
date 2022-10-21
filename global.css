@@ -84,3 +84,7 @@ a {
 	color: currentColor;
 	text-decoration: none;
 }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
