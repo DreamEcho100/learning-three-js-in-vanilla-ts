@@ -4,9 +4,13 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import WebGL from 'three/examples/jsm/capabilities/WebGL';
 import {
 	BufferAttribute,
+	BufferGeometry,
 	DoubleSide,
+	Float32BufferAttribute,
 	MeshPhongMaterial,
 	PerspectiveCamera,
+	Points,
+	PointsMaterial,
 	Raycaster,
 	Scene,
 	Vector3,
@@ -67,14 +71,19 @@ interface IContainerProps {
 
 class Scene1 {
 	arrForOnDispose: [(() => void)[], (() => void)[], (() => void)[]];
-	canvasHolder: HTMLDivElement; // HTMLDivElement;
-	camera: PerspectiveCamera;
-	stats: Stats | undefined;
 	areElementsInit: boolean;
+	camera: PerspectiveCamera;
+	canvasHolder: HTMLDivElement; // HTMLDivElement;
+	frame: number;
+	mainPlaneGeometryProps: {
+		randomValues: number[];
+		originalPosition: number[];
+	};
 	rayCaster: Raycaster;
 	renderer!: WebGL1Renderer;
 	requestAnimationFrameId?: number;
 	scene: Scene;
+	stats?: Stats;
 
 	containerProps!: IContainerProps;
 	containerIntersectionObserver!: IntersectionObserver;
@@ -84,11 +93,7 @@ class Scene1 {
 	directionalFrontLight!: DirectionalLight;
 	directionalBackLight!: DirectionalLight;
 	mainPlaneGeometry!: Mesh<PlaneGeometry, MeshPhongMaterial>;
-	mainPlaneGeometryProps: {
-		randomValues: number[];
-		originalPosition: number[];
-	};
-	frame: number;
+	stars!: Points<BufferGeometry, PointsMaterial>;
 
 	constructor() {
 		if (!WebGL.isWebGLAvailable()) {
@@ -127,6 +132,7 @@ class Scene1 {
 								this.stats.domElement
 							);
 					}
+					document.removeEventListener('scroll', this.handleScroll);
 					this.canvasHolder.removeEventListener(
 						'mousemove',
 						this.trackContainerMousePosition
@@ -184,11 +190,18 @@ class Scene1 {
 	) => {
 		const entry = entries[0];
 		if (!entry.isIntersecting && this.requestAnimationFrameId) {
+			document.removeEventListener('scroll', this.handleScroll);
 			cancelAnimationFrame(this.requestAnimationFrameId);
 			delete this.requestAnimationFrameId;
 		} else if (entry.isIntersecting && !this.requestAnimationFrameId) {
+			this.initScrollHandler();
 			this.requestAnimationFrameId = this.update();
 		}
+	};
+
+	initScrollHandler = () => {
+		document.removeEventListener('scroll', this.handleScroll);
+		document.addEventListener('scroll', this.handleScroll);
 	};
 
 	initCreatingMainPlane = () => {
@@ -288,10 +301,17 @@ class Scene1 {
 		}
 	};
 	trackContainerMousePosition = (event: MouseEvent) => {
+		event.stopPropagation();
 		this.containerProps.mouseCoors.x =
 			(event.clientX / this.containerProps.width) * 2 - 1;
 		this.containerProps.mouseCoors.y =
-			-(event.clientY / this.containerProps.height) * 2 + 1;
+			-((event.clientY - this.containerProps.y) / this.containerProps.height) *
+				2 +
+			1;
+		// this.containerProps.mouseCoors.x =
+		// 	(event.clientX / this.containerProps.width) * 2 - 1;
+		// this.containerProps.mouseCoors.y =
+		// 	-(event.clientY / this.containerProps.height) * 2 + 1;
 	};
 	handleContainerMouseLeave = () => {
 		this.containerProps.mouseCoors.x = undefined;
@@ -343,6 +363,7 @@ class Scene1 {
 
 		this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 		// this.controls.enableZoom = false;
+		// this.controls.enableRotate = false;
 
 		this.directionalFrontLight = getDirectionalLight({
 			color: 0xffffff,
@@ -383,6 +404,28 @@ class Scene1 {
 					this.initCreatingMainPlane();
 				})
 		);
+
+		const starsGeometry = new BufferGeometry();
+		const starsMaterial = new PointsMaterial({ color: 0xffffff });
+
+		const starsVertices = [];
+		let i = 0;
+		for (; i < 10000; i++) {
+			starsVertices.push(
+				(Math.random() - 0.5) * 4000,
+				(Math.random() - 0.5) * 4000,
+				(Math.random() - 0.5) * 4000
+			);
+		}
+
+		starsGeometry.setAttribute(
+			'position',
+			new Float32BufferAttribute(starsVertices, 3)
+		);
+		this.stars = new Points(starsGeometry, starsMaterial);
+		this.scene.add(this.stars);
+
+		this.initScrollHandler();
 
 		this.areElementsInit = true;
 	};
@@ -448,6 +491,16 @@ class Scene1 {
 		};
 	};
 
+	handleScroll = (event: Event) => {
+		event.stopPropagation();
+		if (!this.areElementsInit) return;
+
+		this.containerProps = {
+			...this.containerProps,
+			...this.getContainerBoundingClientRect()
+		};
+	};
+
 	update = () => {
 		this.renderer.render(this.scene, this.camera);
 
@@ -457,6 +510,10 @@ class Scene1 {
 		}
 
 		this.frame += 0.01;
+
+		this.stars.rotation.x += 0.0005;
+		// this.stars.rotation.z += 0.0005;
+		// this.stars.rotation.y += 0.0005;
 
 		const mainPlaneGeometryPositionArr = this.mainPlaneGeometry.geometry
 			.attributes.position.array as number[];
